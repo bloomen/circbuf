@@ -44,7 +44,7 @@ public:
             m_head = other.m_head;
             m_tail = other.m_tail;
         }
-        return this;
+        return *this;
     }
 
     constexpr CircularBuffer(CircularBuffer&& other)
@@ -65,7 +65,7 @@ public:
             m_head = other.m_head;
             m_tail = other.m_tail;
         }
-        return this;
+        return *this;
     }
 
     constexpr size_type
@@ -167,10 +167,34 @@ public:
     }
 
 private:
+    template <typename T_, std::size_t N_>
+        requires(N_ > 0)
+    friend bool
+    operator==(const CircularBuffer<T_, N_>&, const CircularBuffer<T_, N_>&);
+
     std::array<value_type, N> m_data;
     size_type m_size{};
     size_type m_head{};
     size_type m_tail{};
 };
+
+template <typename T, std::size_t N>
+    requires(N > 0)
+bool
+operator==(const CircularBuffer<T, N>& lhs, const CircularBuffer<T, N>& rhs)
+{
+    if (lhs.size() != rhs.size())
+    {
+        return false;
+    }
+    for (typename CircularBuffer<T, N>::size_type i = 0; i < lhs.size(); ++i)
+    {
+        if (lhs[i] != rhs[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
 
 } // namespace circbuf
