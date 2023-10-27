@@ -1,4 +1,4 @@
 circbuf
 -------
 
-A simple circular buffer with a size fixed at compile time.
+A simple circular buffer with a capacity fixed at compile time.

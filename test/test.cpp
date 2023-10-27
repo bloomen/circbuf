@@ -81,3 +81,28 @@ TEST_CASE("test_object_creation")
     cb5 = std::move(cb2);
     REQUIRE(cb5 == cb2);
 }
+
+TEST_CASE("test_iterator_deref")
+{
+    using Buf = circbuf::CircularBuffer<int, 5>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    cb.push_back(44);
+    // begin
+    REQUIRE(*cb.begin() == 42);
+    REQUIRE(*std::as_const(cb).begin() == 42);
+    REQUIRE(cb.begin().operator->() == 42);
+    REQUIRE(std::as_const(cb).begin().operator->() == 42);
+    // end
+    REQUIRE(*(--cb.end()) == 44);
+    REQUIRE(*(--std::as_const(cb).end()) == 44);
+    REQUIRE((--cb.end()).operator->() == 44);
+    REQUIRE((--std::as_const(cb).end()).operator->() == 44);
+    // distance
+    REQUIRE(cb.size() ==
+            static_cast<std::size_t>(std::distance(cb.begin(), cb.end())));
+    REQUIRE(cb.size() ==
+            static_cast<std::size_t>(std::distance(std::as_const(cb).begin(),
+                                                   std::as_const(cb).end())));
+}
