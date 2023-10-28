@@ -165,25 +165,25 @@ public:
         return m_data[index];
     }
 
-    iterator
+    constexpr iterator
     begin()
     {
         return iterator{*this, 0};
     }
 
-    const_iterator
+    constexpr const_iterator
     begin() const
     {
         return const_iterator{*this, 0};
     }
 
-    iterator
+    constexpr iterator
     end()
     {
         return iterator{*this, m_size};
     }
 
-    const_iterator
+    constexpr const_iterator
     end() const
     {
         return const_iterator{*this, m_size};
@@ -196,7 +196,12 @@ private:
     template <typename T_, std::size_t Capacity_>
     friend constexpr bool
     operator==(const CircularBuffer<T_, Capacity_>&,
-               const CircularBuffer<T_, Capacity_>&);
+               const CircularBuffer<T_, Capacity_>&) noexcept;
+
+    template <typename T_, std::size_t Capacity_>
+    friend constexpr bool
+    operator!=(const CircularBuffer<T_, Capacity_>&,
+               const CircularBuffer<T_, Capacity_>&) noexcept;
 
     std::array<value_type, Capacity> m_data;
     size_type m_size{};
@@ -207,7 +212,7 @@ private:
 template <typename T, std::size_t Capacity>
 constexpr bool
 operator==(const CircularBuffer<T, Capacity>& lhs,
-           const CircularBuffer<T, Capacity>& rhs)
+           const CircularBuffer<T, Capacity>& rhs) noexcept
 {
     if (lhs.size() != rhs.size())
     {
@@ -224,6 +229,14 @@ operator==(const CircularBuffer<T, Capacity>& lhs,
     return true;
 }
 
+template <typename T, std::size_t Capacity>
+constexpr bool
+operator!=(const CircularBuffer<T, Capacity>& lhs,
+           const CircularBuffer<T, Capacity>& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
 template <typename BufferType>
 class CircularBufferIterator
 {
@@ -237,48 +250,49 @@ public:
     using pointer = value_type*;
     using const_pointer = const value_type*;
 
-    explicit CircularBufferIterator(BufferType& buffer, const size_type index)
+    explicit constexpr CircularBufferIterator(BufferType& buffer,
+                                              const size_type index)
         : m_buffer{buffer}
         , m_index{index}
     {
     }
 
-    reference
-    operator*()
+    constexpr reference
+    operator*() noexcept
         requires(!std::is_const_v<BufferType>)
     {
         return m_buffer.get()
             .m_data[(m_buffer.get().m_head + m_index) % BufferType::capacity()];
     }
 
-    const_reference
-    operator*() const
+    constexpr const_reference
+    operator*() const noexcept
     {
         return m_buffer.get()
             .m_data[(m_buffer.get().m_head + m_index) % BufferType::capacity()];
     }
 
-    reference
-    operator->()
+    constexpr reference
+    operator->() noexcept
         requires(!std::is_const_v<BufferType>)
     {
         return this->operator*();
     }
 
-    const_reference
-    operator->() const
+    constexpr const_reference
+    operator->() const noexcept
     {
         return this->operator*();
     }
 
-    self_type&
-    operator++()
+    constexpr self_type&
+    operator++() noexcept
     {
         ++m_index;
         return *this;
     }
 
-    self_type
+    constexpr self_type
     operator++(int)
     {
         self_type temp = *this;
@@ -286,48 +300,14 @@ public:
         return temp;
     }
 
-    self_type&
-    operator--()
-    {
-        --m_index;
-        return *this;
-    }
-
-    self_type
-    operator--(int)
-    {
-        self_type temp = *this;
-        --*this;
-        return temp;
-    }
-
-    self_type
+    constexpr self_type
     operator+(const difference_type offset) const
     {
         self_type temp = *this;
         return temp += offset;
     }
 
-    self_type
-    operator-(const difference_type offset) const
-    {
-        self_type temp = *this;
-        return temp -= offset;
-    }
-
-    difference_type
-    operator-(const self_type& other) const
-    {
-        return m_index - other.m_index;
-    }
-
-    difference_type
-    operator+(const self_type& other) const
-    {
-        return m_index + other.m_index;
-    }
-
-    self_type&
+    constexpr self_type&
     operator+=(const difference_type offset)
     {
         const difference_type next =
@@ -336,56 +316,91 @@ public:
         return *this;
     }
 
-    self_type&
-    operator-=(const difference_type offset)
+    constexpr difference_type
+    operator+(const self_type& other) const noexcept
+    {
+        return m_index + other.m_index;
+    }
+
+    constexpr self_type&
+    operator--() noexcept
+    {
+        --m_index;
+        return *this;
+    }
+
+    constexpr self_type
+    operator--(int)
+    {
+        self_type temp = *this;
+        --*this;
+        return temp;
+    }
+
+    constexpr self_type
+    operator-(const difference_type offset) const
+    {
+        self_type temp = *this;
+        return temp -= offset;
+    }
+
+    constexpr self_type&
+    operator-=(const difference_type offset) noexcept
     {
         return *this += -offset;
     }
 
-    bool
-    operator==(const self_type& other) const
+    constexpr difference_type
+    operator-(const self_type& other) const noexcept
+    {
+        return m_index - other.m_index;
+    }
+
+    constexpr bool
+    operator==(const self_type& other) const noexcept
     {
         return m_index == other.m_index;
     }
 
-    bool
-    operator!=(const self_type& other) const
+    constexpr bool
+    operator!=(const self_type& other) const noexcept
     {
         return !(*this == other);
     }
 
-    bool
-    operator<(const self_type& other) const
+    constexpr bool
+    operator<(const self_type& other) const noexcept
     {
         return m_index < other.m_index;
     }
 
-    bool
-    operator>(const self_type& other) const
+    constexpr bool
+    operator>(const self_type& other) const noexcept
     {
         return other < *this;
     }
 
-    bool
-    operator<=(const self_type& other) const
+    constexpr bool
+    operator<=(const self_type& other) const noexcept
     {
         return !(other < *this);
     }
 
-    bool
-    operator>=(const self_type& other) const
+    constexpr bool
+    operator>=(const self_type& other) const noexcept
     {
         return !(*this < other);
     }
 
     value_type&
-    operator[](const difference_type offset)
+    operator[](const difference_type offset) noexcept
+        requires(!std::is_const_v<BufferType>)
     {
         return *(*this + offset);
     }
 
     const value_type&
-    operator[](const difference_type offset) const
+    operator[](const difference_type offset) const noexcept
     {
         return *(*this + offset);
     }

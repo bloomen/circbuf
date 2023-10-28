@@ -82,6 +82,18 @@ TEST_CASE("test_object_creation")
     REQUIRE(cb5 == cb2);
 }
 
+TEST_CASE("test_comparison")
+{
+    using Buf = circbuf::CircularBuffer<int, 3>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    auto cb2 = cb;
+    REQUIRE(cb == cb2);
+    cb2.push_back(44);
+    REQUIRE(cb != cb2);
+}
+
 TEST_CASE("test_iterator_deref")
 {
     using Buf = circbuf::CircularBuffer<int, 5>;
@@ -94,15 +106,89 @@ TEST_CASE("test_iterator_deref")
     REQUIRE(*std::as_const(cb).begin() == 42);
     REQUIRE(cb.begin().operator->() == 42);
     REQUIRE(std::as_const(cb).begin().operator->() == 42);
+    REQUIRE(cb.begin()[0] == 42);
+    REQUIRE(std::as_const(cb).begin()[0] == 42);
+    REQUIRE(cb.begin()[2] == 44);
+    REQUIRE(std::as_const(cb).begin()[2] == 44);
     // end
     REQUIRE(*(--cb.end()) == 44);
     REQUIRE(*(--std::as_const(cb).end()) == 44);
     REQUIRE((--cb.end()).operator->() == 44);
     REQUIRE((--std::as_const(cb).end()).operator->() == 44);
+    REQUIRE(cb.end()[-1] == 44);
+    REQUIRE(std::as_const(cb).end()[-1] == 44);
+    REQUIRE(cb.end()[-3] == 42);
+    REQUIRE(std::as_const(cb).end()[-3] == 42);
     // distance
     REQUIRE(cb.size() ==
             static_cast<std::size_t>(std::distance(cb.begin(), cb.end())));
     REQUIRE(cb.size() ==
             static_cast<std::size_t>(std::distance(std::as_const(cb).begin(),
                                                    std::as_const(cb).end())));
+}
+
+TEST_CASE("test_iterator_increment")
+{
+    using Buf = circbuf::CircularBuffer<int, 5>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    cb.push_back(44);
+    cb.push_back(45);
+    cb.push_back(46);
+    auto it = cb.begin();
+    REQUIRE(43 == *(++it));
+    REQUIRE(43 == *it);
+    REQUIRE(43 == *(it++));
+    REQUIRE(46 == *(it + 2));
+    auto it2 = cb.begin();
+    it2 += 3;
+    REQUIRE(45 == *it2);
+    auto it3 = cb.begin() + 1;
+    REQUIRE(4 == it2 + it3);
+}
+
+TEST_CASE("test_iterator_decrement")
+{
+    using Buf = circbuf::CircularBuffer<int, 5>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    cb.push_back(44);
+    cb.push_back(45);
+    cb.push_back(46);
+    auto it = cb.end();
+    --it;
+    REQUIRE(45 == *(--it));
+    REQUIRE(45 == *it);
+    REQUIRE(45 == *(it--));
+    REQUIRE(42 == *(it - 2));
+    auto it2 = cb.end();
+    it2 -= 3;
+    REQUIRE(44 == *it2);
+    auto it3 = cb.end() - 1;
+    REQUIRE(2 == it3 - it2);
+}
+
+TEST_CASE("test_iterator_comparison")
+{
+    using Buf = circbuf::CircularBuffer<int, 5>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    cb.push_back(44);
+    cb.push_back(45);
+    cb.push_back(46);
+    auto it = cb.begin();
+    auto it2 = cb.begin();
+    REQUIRE(it == it2);
+    ++it;
+    ++it2;
+    REQUIRE(it == it2);
+    REQUIRE(it <= it2);
+    REQUIRE(it2 >= it);
+    ++it2;
+    REQUIRE(it != it2);
+    REQUIRE(it < it2);
+    REQUIRE(it2 > it);
 }
