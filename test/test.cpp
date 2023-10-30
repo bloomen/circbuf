@@ -2,6 +2,34 @@
 #include "catch_amalgamated.hpp"
 #include "circbuf.h"
 
+namespace
+{
+
+struct MoveOnly
+{
+    MoveOnly() = default;
+    MoveOnly(MoveOnly&&) = default;
+    MoveOnly&
+    operator=(MoveOnly&&) = default;
+};
+
+struct CopyOnly
+{
+    CopyOnly() = default;
+    CopyOnly(const CopyOnly&) = default;
+    CopyOnly&
+    operator=(const CopyOnly&) = default;
+};
+
+struct NoDefaultConstructor
+{
+    NoDefaultConstructor(int)
+    {
+    }
+};
+
+} // namespace
+
 TEST_CASE("test_roundtrip")
 {
     using Buf = circbuf::CircularBuffer<int, 2>;
@@ -222,4 +250,20 @@ TEST_CASE("test_for_loop")
     }
     const std::vector<int> exp{43, 60, 45};
     REQUIRE(exp == values);
+}
+
+TEST_CASE("test_with_move_only")
+{
+    using Buf = circbuf::CircularBuffer<MoveOnly, 3>;
+    Buf cb;
+    cb.push_back(MoveOnly{});
+    cb.pop_front();
+}
+
+TEST_CASE("test_with_copy_only")
+{
+    using Buf = circbuf::CircularBuffer<CopyOnly, 3>;
+    Buf cb;
+    cb.push_back(CopyOnly{});
+    cb.pop_front();
 }

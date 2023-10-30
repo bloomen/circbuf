@@ -162,7 +162,7 @@ public:
         const auto index = m_head;
         m_head = (m_head + 1) % Capacity;
         --m_size;
-        return m_data[index];
+        return std::move(m_data[index]);
     }
 
     constexpr iterator
