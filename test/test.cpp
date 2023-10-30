@@ -267,3 +267,11 @@ TEST_CASE("test_with_copy_only")
     cb.push_back(CopyOnly{});
     cb.pop_front();
 }
+
+TEST_CASE("test_with_no_default_constructor")
+{
+    using Buf = circbuf::CircularBuffer<NoDefaultConstructor, 3>;
+    Buf cb;
+    cb.push_back(NoDefaultConstructor{42});
+    cb.pop_front();
+}

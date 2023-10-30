@@ -100,37 +100,37 @@ public:
     constexpr reference
     operator[](const size_type index) noexcept
     {
-        return m_data[(m_head + index) % Capacity];
+        return at((m_head + index) % Capacity);
     }
 
     constexpr const_reference
     operator[](const size_type index) const noexcept
     {
-        return m_data[(m_head + index) % Capacity];
+        return at((m_head + index) % Capacity);
     }
 
     constexpr reference
     front() noexcept
     {
-        return m_data[m_head];
+        return at(m_head);
     }
 
     constexpr const_reference
     front() const noexcept
     {
-        return m_data[m_head];
+        return at(m_head);
     }
 
     constexpr reference
     back() noexcept
     {
-        return m_data[m_tail];
+        return at(m_tail);
     }
 
     constexpr const_reference
     back() const noexcept
     {
-        return m_data[m_tail];
+        return at(m_tail);
     }
 
     template <typename Type>
@@ -140,19 +140,19 @@ public:
     {
         if (empty())
         {
-            m_data[m_tail] = std::forward<Type>(value);
+            new (m_data[m_tail]) value_type{std::forward<Type>(value)};
             ++m_size;
         }
         else if (!full())
         {
-            m_data[++m_tail] = std::forward<Type>(value);
+            new (m_data[++m_tail]) value_type{std::forward<Type>(value)};
             ++m_size;
         }
         else
         {
             m_head = (m_head + 1) % Capacity;
             m_tail = (m_tail + 1) % Capacity;
-            m_data[m_tail] = std::forward<Type>(value);
+            new (m_data[m_tail]) value_type{std::forward<Type>(value)};
         }
     }
 
@@ -162,7 +162,7 @@ public:
         const auto index = m_head;
         m_head = (m_head + 1) % Capacity;
         --m_size;
-        return std::move(m_data[index]);
+        return std::move(at(index));
     }
 
     constexpr iterator
@@ -193,7 +193,20 @@ private:
     template <typename BufferType>
     friend class CircularBufferIterator;
 
-    std::array<value_type, Capacity> m_data;
+    value_type&
+    at(const size_type index)
+    {
+        return *reinterpret_cast<value_type*>(&m_data[index]);
+    }
+
+    const value_type&
+    at(const size_type index) const
+    {
+        return *reinterpret_cast<const value_type*>(&m_data[index]);
+    }
+
+    using Memory = unsigned char[sizeof(value_type)];
+    std::array<Memory, Capacity> m_data;
     size_type m_size{};
     size_type m_head{};
     size_type m_tail{};
@@ -251,15 +264,15 @@ public:
     operator*() noexcept
         requires(!std::is_const_v<BufferType>)
     {
-        return m_buffer.get()
-            .m_data[(m_buffer.get().m_head + m_index) % BufferType::capacity()];
+        return m_buffer.get().at((m_buffer.get().m_head + m_index) %
+                                 BufferType::capacity());
     }
 
     constexpr const_reference
     operator*() const noexcept
     {
-        return m_buffer.get()
-            .m_data[(m_buffer.get().m_head + m_index) % BufferType::capacity()];
+        return m_buffer.get().at((m_buffer.get().m_head + m_index) %
+                                 BufferType::capacity());
     }
 
     constexpr reference
