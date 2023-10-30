@@ -27,10 +27,7 @@ public:
 
     ~CircularBuffer()
     {
-        for (size_type i = 0; i < m_size; ++i)
-        {
-            at(i).~value_type();
-        }
+        clear();
     }
 
     constexpr CircularBuffer(const CircularBuffer& other)
@@ -102,7 +99,13 @@ public:
     constexpr void
     clear() noexcept
     {
-        m_size = m_head = m_head = 0;
+        for (size_type i = 0; i < m_size; ++i)
+        {
+            at(i).~value_type();
+        }
+        m_size = 0;
+        m_head = 0;
+        m_tail = 0;
     }
 
     constexpr reference
@@ -169,7 +172,9 @@ public:
         const auto index = m_head;
         m_head = (m_head + 1) % Capacity;
         --m_size;
-        return std::move(at(index));
+        auto value = std::move(at(index));
+        at(index).~value_type();
+        return value;
     }
 
     constexpr iterator
