@@ -15,7 +15,7 @@ cb.push_back(44);
 cb.push_back(45);
 for (auto value : cb)
 {
-    std::cout << value << '\t';
+    std::cout << value << ", ";
 }
 // prints: 43, 44, 45
 ```
