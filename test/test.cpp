@@ -192,3 +192,34 @@ TEST_CASE("test_iterator_comparison")
     REQUIRE(it < it2);
     REQUIRE(it2 > it);
 }
+
+TEST_CASE("test_global_begin_end")
+{
+    using Buf = circbuf::CircularBuffer<int, 5>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    cb.push_back(44);
+    auto it = std::begin(cb);
+    auto it2 = std::end(cb) - 1;
+    REQUIRE(42 == *it);
+    REQUIRE(44 == *it2);
+}
+
+TEST_CASE("test_for_loop")
+{
+    using Buf = circbuf::CircularBuffer<int, 3>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    cb.push_back(44);
+    cb.push_back(45);
+    cb[1] = 60;
+    std::vector<int> values;
+    for (auto value : cb)
+    {
+        values.emplace_back(value);
+    }
+    const std::vector<int> exp{43, 60, 45};
+    REQUIRE(exp == values);
+}
