@@ -144,7 +144,7 @@ TEST_CASE("test_iterator_increment")
     auto it2 = cb.begin();
     it2 += 3;
     REQUIRE(45 == *it2);
-    auto it3 = cb.begin() + 1;
+    auto it3 = std::as_const(cb).begin() + 1;
     REQUIRE(4 == it2 + it3);
 }
 
@@ -166,7 +166,7 @@ TEST_CASE("test_iterator_decrement")
     auto it2 = cb.end();
     it2 -= 3;
     REQUIRE(44 == *it2);
-    auto it3 = cb.end() - 1;
+    auto it3 = std::as_const(cb).end() - 1;
     REQUIRE(2 == it3 - it2);
 }
 
@@ -180,7 +180,7 @@ TEST_CASE("test_iterator_comparison")
     cb.push_back(45);
     cb.push_back(46);
     auto it = cb.begin();
-    auto it2 = cb.begin();
+    auto it2 = std::as_const(cb).begin();
     REQUIRE(it == it2);
     ++it;
     ++it2;
