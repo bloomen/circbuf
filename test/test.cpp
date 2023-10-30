@@ -7,10 +7,30 @@ namespace
 
 struct MoveOnly
 {
-    MoveOnly() = default;
-    MoveOnly(MoveOnly&&) = default;
+    MoveOnly()
+    {
+        data = new int[3]{};
+    }
+    ~MoveOnly()
+    {
+        delete[] data;
+    }
+    MoveOnly(MoveOnly&& o)
+        : data{o.data}
+    {
+        o.data = nullptr;
+    }
     MoveOnly&
-    operator=(MoveOnly&&) = default;
+    operator=(MoveOnly&& o)
+    {
+        if (this != &o)
+        {
+            data = o.data;
+            o.data = nullptr;
+        }
+        return *this;
+    }
+    int* data;
 };
 
 struct CopyOnly
@@ -275,4 +295,11 @@ TEST_CASE("test_with_no_default_constructor")
     cb.push_back(NoDefaultConstructor{42, 55.});
     cb.push_back(42, 55.);
     cb.pop_front();
+}
+
+TEST_CASE("test_cleanup")
+{
+    using Buf = circbuf::CircularBuffer<MoveOnly, 3>;
+    Buf cb;
+    cb.push_back(MoveOnly{});
 }

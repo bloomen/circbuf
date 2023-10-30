@@ -25,6 +25,14 @@ public:
 
     constexpr CircularBuffer() = default;
 
+    ~CircularBuffer()
+    {
+        for (size_type i = 0; i < m_size; ++i)
+        {
+            at(i).~value_type();
+        }
+    }
+
     constexpr CircularBuffer(const CircularBuffer& other)
         : m_data{other.m_data}
         , m_size{other.m_size}
