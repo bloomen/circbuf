@@ -133,26 +133,25 @@ public:
         return at(m_tail);
     }
 
-    template <typename Type>
-        requires(std::is_same_v<std::decay_t<Type>, value_type>)
+    template <typename... Type>
     constexpr void
-    push_back(Type&& value)
+    push_back(Type&&... value)
     {
         if (empty())
         {
-            new (m_data[m_tail]) value_type{std::forward<Type>(value)};
+            new (m_data[m_tail]) value_type{std::forward<Type>(value)...};
             ++m_size;
         }
         else if (!full())
         {
-            new (m_data[++m_tail]) value_type{std::forward<Type>(value)};
+            new (m_data[++m_tail]) value_type{std::forward<Type>(value)...};
             ++m_size;
         }
         else
         {
             m_head = (m_head + 1) % Capacity;
             m_tail = (m_tail + 1) % Capacity;
-            new (m_data[m_tail]) value_type{std::forward<Type>(value)};
+            new (m_data[m_tail]) value_type{std::forward<Type>(value)...};
         }
     }
 

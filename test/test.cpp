@@ -23,7 +23,7 @@ struct CopyOnly
 
 struct NoDefaultConstructor
 {
-    NoDefaultConstructor(int)
+    NoDefaultConstructor(int, double)
     {
     }
 };
@@ -272,6 +272,7 @@ TEST_CASE("test_with_no_default_constructor")
 {
     using Buf = circbuf::CircularBuffer<NoDefaultConstructor, 3>;
     Buf cb;
-    cb.push_back(NoDefaultConstructor{42});
+    cb.push_back(NoDefaultConstructor{42, 55.});
+    cb.push_back(42, 55.);
     cb.pop_front();
 }
