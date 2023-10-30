@@ -190,18 +190,8 @@ public:
     }
 
 private:
-    template <typename BufferType_>
+    template <typename BufferType>
     friend class CircularBufferIterator;
-
-    template <typename T_, std::size_t Capacity_>
-    friend constexpr bool
-    operator==(const CircularBuffer<T_, Capacity_>&,
-               const CircularBuffer<T_, Capacity_>&) noexcept;
-
-    template <typename T_, std::size_t Capacity_>
-    friend constexpr bool
-    operator!=(const CircularBuffer<T_, Capacity_>&,
-               const CircularBuffer<T_, Capacity_>&) noexcept;
 
     std::array<value_type, Capacity> m_data;
     size_type m_size{};
