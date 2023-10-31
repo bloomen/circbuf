@@ -124,10 +124,12 @@ TEST_CASE("test_object_creation")
     // move constructor
     Buf cb4{std::move(cb)};
     REQUIRE(cb4 == cb3);
+    REQUIRE(cb.empty());
     // move assignment
     Buf cb5;
     cb5 = std::move(cb2);
     REQUIRE(cb5 == cb3);
+    REQUIRE(cb2.empty());
 }
 
 TEST_CASE("test_comparison")
