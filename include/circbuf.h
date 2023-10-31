@@ -27,7 +27,7 @@ public:
 
     ~CircularBuffer()
     {
-        clear();
+        destruct();
     }
 
     constexpr CircularBuffer(const CircularBuffer& other)
@@ -43,6 +43,7 @@ public:
     {
         if (this != &other)
         {
+            destruct();
             m_data = other.m_data;
             m_size = other.m_size;
             m_head = other.m_head;
@@ -53,10 +54,10 @@ public:
 
     constexpr CircularBuffer(CircularBuffer&& other)
         : m_data{std::move(other.m_data)}
-        , m_size{other.m_size}
-        , m_head{other.m_head}
-        , m_tail{other.m_tail}
     {
+        std::swap(m_size, other.m_size);
+        std::swap(m_head, other.m_head);
+        std::swap(m_tail, other.m_tail);
     }
 
     constexpr CircularBuffer&
@@ -64,10 +65,11 @@ public:
     {
         if (this != &other)
         {
+            clear();
             m_data = std::move(other.m_data);
-            m_size = other.m_size;
-            m_head = other.m_head;
-            m_tail = other.m_tail;
+            std::swap(m_size, other.m_size);
+            std::swap(m_head, other.m_head);
+            std::swap(m_tail, other.m_tail);
         }
         return *this;
     }
@@ -99,10 +101,7 @@ public:
     constexpr void
     clear() noexcept
     {
-        for (size_type i = 0; i < m_size; ++i)
-        {
-            at(i).~value_type();
-        }
+        destruct();
         m_size = 0;
         m_head = 0;
         m_tail = 0;
@@ -215,6 +214,15 @@ private:
     at(const size_type index) const
     {
         return *reinterpret_cast<const value_type*>(&m_data[index]);
+    }
+
+    constexpr void
+    destruct() noexcept
+    {
+        for (size_type i = 0; i < m_size; ++i)
+        {
+            at(i).~value_type();
+        }
     }
 
     using Memory = unsigned char[sizeof(value_type)];
