@@ -108,6 +108,22 @@ TEST_CASE("test_roundtrip")
     REQUIRE(!cb.full());
 }
 
+TEST_CASE("test_with_capacity_of_one")
+{
+    using Buf = circbuf::CircularBuffer<int, 1>;
+    Buf cb;
+    cb.push_back(42);
+    REQUIRE(42 == cb.front());
+    REQUIRE(42 == cb.back());
+    REQUIRE(42 == *cb.begin());
+    cb.push_back(43);
+    REQUIRE(43 == cb.front());
+    REQUIRE(43 == cb.back());
+    REQUIRE(43 == *cb.begin());
+    REQUIRE(43 == cb.pop_front());
+    REQUIRE(cb.empty());
+}
+
 TEST_CASE("test_object_creation")
 {
     using Buf = circbuf::CircularBuffer<int, 2>;

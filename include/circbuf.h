@@ -149,20 +149,19 @@ public:
     {
         if (empty())
         {
-            new (m_data[m_tail]) value_type{std::forward<Type>(value)...};
             ++m_size;
         }
-        else if (!full())
-        {
-            new (m_data[++m_tail]) value_type{std::forward<Type>(value)...};
-            ++m_size;
-        }
-        else
+        else if (full())
         {
             m_head = (m_head + 1) % Capacity;
             m_tail = (m_tail + 1) % Capacity;
-            new (m_data[m_tail]) value_type{std::forward<Type>(value)...};
         }
+        else
+        {
+            ++m_tail;
+            ++m_size;
+        }
+        new (m_data[m_tail]) value_type{std::forward<Type>(value)...};
     }
 
     constexpr value_type
