@@ -16,21 +16,21 @@ struct MoveOnly
         delete[] data;
     }
     MoveOnly(MoveOnly&& o)
-        : data{o.data}
     {
-        o.data = nullptr;
+        std::swap(data, o.data);
     }
     MoveOnly&
     operator=(MoveOnly&& o)
     {
         if (this != &o)
         {
-            data = o.data;
-            o.data = nullptr;
+            delete[] data;
+            data = nullptr;
+            std::swap(data, o.data);
         }
         return *this;
     }
-    int* data;
+    int* data = nullptr;
 };
 
 struct CopyOnly
