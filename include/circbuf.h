@@ -396,9 +396,9 @@ private:
                const CircularBufferIterator<BufferType2>&) noexcept;
 
     template <typename BufferType1, typename BufferType2>
-    friend constexpr bool
-    operator<(const CircularBufferIterator<BufferType1>&,
-              const CircularBufferIterator<BufferType2>&) noexcept;
+    friend constexpr auto
+    operator<=>(const CircularBufferIterator<BufferType1>&,
+                const CircularBufferIterator<BufferType2>&) noexcept;
 
     std::reference_wrapper<BufferType> m_buffer;
     size_type m_index;
@@ -429,43 +429,11 @@ operator==(const CircularBufferIterator<BufferType1>& lhs,
 }
 
 template <typename BufferType1, typename BufferType2>
-constexpr bool
-operator!=(const CircularBufferIterator<BufferType1>& lhs,
-           const CircularBufferIterator<BufferType2>& rhs) noexcept
+constexpr auto
+operator<=>(const CircularBufferIterator<BufferType1>& lhs,
+            const CircularBufferIterator<BufferType2>& rhs) noexcept
 {
-    return !(lhs == rhs);
-}
-
-template <typename BufferType1, typename BufferType2>
-constexpr bool
-operator<(const CircularBufferIterator<BufferType1>& lhs,
-          const CircularBufferIterator<BufferType2>& rhs) noexcept
-{
-    return lhs.m_index < rhs.m_index;
-}
-
-template <typename BufferType1, typename BufferType2>
-constexpr bool
-operator>(const CircularBufferIterator<BufferType1>& lhs,
-          const CircularBufferIterator<BufferType2>& rhs) noexcept
-{
-    return rhs < lhs;
-}
-
-template <typename BufferType1, typename BufferType2>
-constexpr bool
-operator<=(const CircularBufferIterator<BufferType1>& lhs,
-           const CircularBufferIterator<BufferType2>& rhs) noexcept
-{
-    return !(rhs < lhs);
-}
-
-template <typename BufferType1, typename BufferType2>
-constexpr bool
-operator>=(const CircularBufferIterator<BufferType1>& lhs,
-           const CircularBufferIterator<BufferType2>& rhs) noexcept
-{
-    return !(lhs < rhs);
+    return lhs.m_index <=> rhs.m_index;
 }
 
 } // namespace circbuf
