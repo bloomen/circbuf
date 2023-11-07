@@ -5,7 +5,7 @@
 namespace circbuf
 {
 
-template <typename BufferType>
+template <typename BufferType, bool Reverse>
 class CircularBufferIterator;
 
 template <typename T, std::size_t Capacity>
@@ -20,8 +20,11 @@ public:
     using const_reference = const value_type&;
     using pointer = value_type*;
     using const_pointer = const value_type*;
-    using iterator = CircularBufferIterator<CircularBuffer>;
-    using const_iterator = CircularBufferIterator<const CircularBuffer>;
+    using iterator = CircularBufferIterator<CircularBuffer, false>;
+    using const_iterator = CircularBufferIterator<const CircularBuffer, false>;
+    using reverse_iterator = CircularBufferIterator<CircularBuffer, true>;
+    using const_reverse_iterator =
+        CircularBufferIterator<const CircularBuffer, true>;
 
     constexpr CircularBuffer() = default;
 
@@ -187,6 +190,12 @@ public:
         return const_iterator{*this, 0};
     }
 
+    constexpr const_iterator
+    cbegin() const
+    {
+        return const_iterator{*this, 0};
+    }
+
     constexpr iterator
     end()
     {
@@ -199,8 +208,50 @@ public:
         return const_iterator{*this, m_size};
     }
 
+    constexpr const_iterator
+    cend() const
+    {
+        return const_iterator{*this, m_size};
+    }
+
+    constexpr reverse_iterator
+    rbegin()
+    {
+        return reverse_iterator{*this, 0};
+    }
+
+    constexpr const_reverse_iterator
+    rbegin() const
+    {
+        return const_reverse_iterator{*this, 0};
+    }
+
+    constexpr const_reverse_iterator
+    crbegin() const
+    {
+        return const_reverse_iterator{*this, 0};
+    }
+
+    constexpr reverse_iterator
+    rend()
+    {
+        return reverse_iterator{*this, m_size};
+    }
+
+    constexpr const_reverse_iterator
+    rend() const
+    {
+        return const_reverse_iterator{*this, m_size};
+    }
+
+    constexpr const_reverse_iterator
+    crend() const
+    {
+        return const_reverse_iterator{*this, m_size};
+    }
+
 private:
-    template <typename BufferType>
+    template <typename BufferType, bool Reverse>
     friend class CircularBufferIterator;
 
     value_type&
@@ -251,15 +302,7 @@ operator==(const CircularBuffer<T, Capacity>& lhs,
     return true;
 }
 
-template <typename T, std::size_t Capacity>
-constexpr bool
-operator!=(const CircularBuffer<T, Capacity>& lhs,
-           const CircularBuffer<T, Capacity>& rhs) noexcept
-{
-    return !(lhs == rhs);
-}
-
-template <typename BufferType>
+template <typename BufferType, bool Reverse>
 class CircularBufferIterator
 {
 public:
@@ -283,15 +326,33 @@ public:
     operator*() noexcept
         requires(!std::is_const_v<BufferType>)
     {
-        return m_buffer.get().at((m_buffer.get().m_head + m_index) %
-                                 BufferType::capacity());
+        if constexpr (Reverse)
+        {
+            return m_buffer.get().at(
+                (m_buffer.get().m_head + m_buffer.get().m_size - m_index - 1) %
+                BufferType::capacity());
+        }
+        else
+        {
+            return m_buffer.get().at((m_buffer.get().m_head + m_index) %
+                                     BufferType::capacity());
+        }
     }
 
     constexpr const_reference
     operator*() const noexcept
     {
-        return m_buffer.get().at((m_buffer.get().m_head + m_index) %
-                                 BufferType::capacity());
+        if constexpr (Reverse)
+        {
+            return m_buffer.get().at(
+                (m_buffer.get().m_head + m_buffer.get().m_size - m_index - 1) %
+                BufferType::capacity());
+        }
+        else
+        {
+            return m_buffer.get().at((m_buffer.get().m_head + m_index) %
+                                     BufferType::capacity());
+        }
     }
 
     constexpr reference
@@ -382,23 +443,43 @@ public:
 private:
     template <typename BufferType1, typename BufferType2>
     friend constexpr typename BufferType1::difference_type
-    operator+(const CircularBufferIterator<BufferType1>&,
-              const CircularBufferIterator<BufferType2>&) noexcept;
+    operator+(const CircularBufferIterator<BufferType1, true>&,
+              const CircularBufferIterator<BufferType2, true>&) noexcept;
 
     template <typename BufferType1, typename BufferType2>
     friend constexpr typename BufferType1::difference_type
-    operator-(const CircularBufferIterator<BufferType1>&,
-              const CircularBufferIterator<BufferType2>&) noexcept;
+    operator+(const CircularBufferIterator<BufferType1, false>&,
+              const CircularBufferIterator<BufferType2, false>&) noexcept;
+
+    template <typename BufferType1, typename BufferType2>
+    friend constexpr typename BufferType1::difference_type
+    operator-(const CircularBufferIterator<BufferType1, true>&,
+              const CircularBufferIterator<BufferType2, true>&) noexcept;
+
+    template <typename BufferType1, typename BufferType2>
+    friend constexpr typename BufferType1::difference_type
+    operator-(const CircularBufferIterator<BufferType1, false>&,
+              const CircularBufferIterator<BufferType2, false>&) noexcept;
 
     template <typename BufferType1, typename BufferType2>
     friend constexpr bool
-    operator==(const CircularBufferIterator<BufferType1>&,
-               const CircularBufferIterator<BufferType2>&) noexcept;
+    operator==(const CircularBufferIterator<BufferType1, true>&,
+               const CircularBufferIterator<BufferType2, true>&) noexcept;
+
+    template <typename BufferType1, typename BufferType2>
+    friend constexpr bool
+    operator==(const CircularBufferIterator<BufferType1, false>&,
+               const CircularBufferIterator<BufferType2, false>&) noexcept;
 
     template <typename BufferType1, typename BufferType2>
     friend constexpr auto
-    operator<=>(const CircularBufferIterator<BufferType1>&,
-                const CircularBufferIterator<BufferType2>&) noexcept;
+    operator<=>(const CircularBufferIterator<BufferType1, true>&,
+                const CircularBufferIterator<BufferType2, true>&) noexcept;
+
+    template <typename BufferType1, typename BufferType2>
+    friend constexpr auto
+    operator<=>(const CircularBufferIterator<BufferType1, false>&,
+                const CircularBufferIterator<BufferType2, false>&) noexcept;
 
     std::reference_wrapper<BufferType> m_buffer;
     size_type m_index;
@@ -406,32 +487,64 @@ private:
 
 template <typename BufferType1, typename BufferType2>
 constexpr typename BufferType1::difference_type
-operator+(const CircularBufferIterator<BufferType1>& lhs,
-          const CircularBufferIterator<BufferType2>& rhs) noexcept
+operator+(const CircularBufferIterator<BufferType1, true>& lhs,
+          const CircularBufferIterator<BufferType2, true>& rhs) noexcept
 {
     return lhs.m_index + rhs.m_index;
 }
 
 template <typename BufferType1, typename BufferType2>
 constexpr typename BufferType1::difference_type
-operator-(const CircularBufferIterator<BufferType1>& lhs,
-          const CircularBufferIterator<BufferType2>& rhs) noexcept
+operator+(const CircularBufferIterator<BufferType1, false>& lhs,
+          const CircularBufferIterator<BufferType2, false>& rhs) noexcept
+{
+    return lhs.m_index + rhs.m_index;
+}
+
+template <typename BufferType1, typename BufferType2>
+constexpr typename BufferType1::difference_type
+operator-(const CircularBufferIterator<BufferType1, true>& lhs,
+          const CircularBufferIterator<BufferType2, true>& rhs) noexcept
+{
+    return lhs.m_index - rhs.m_index;
+}
+
+template <typename BufferType1, typename BufferType2>
+constexpr typename BufferType1::difference_type
+operator-(const CircularBufferIterator<BufferType1, false>& lhs,
+          const CircularBufferIterator<BufferType2, false>& rhs) noexcept
 {
     return lhs.m_index - rhs.m_index;
 }
 
 template <typename BufferType1, typename BufferType2>
 constexpr bool
-operator==(const CircularBufferIterator<BufferType1>& lhs,
-           const CircularBufferIterator<BufferType2>& rhs) noexcept
+operator==(const CircularBufferIterator<BufferType1, true>& lhs,
+           const CircularBufferIterator<BufferType2, true>& rhs) noexcept
+{
+    return lhs.m_index == rhs.m_index;
+}
+
+template <typename BufferType1, typename BufferType2>
+constexpr bool
+operator==(const CircularBufferIterator<BufferType1, false>& lhs,
+           const CircularBufferIterator<BufferType2, false>& rhs) noexcept
 {
     return lhs.m_index == rhs.m_index;
 }
 
 template <typename BufferType1, typename BufferType2>
 constexpr auto
-operator<=>(const CircularBufferIterator<BufferType1>& lhs,
-            const CircularBufferIterator<BufferType2>& rhs) noexcept
+operator<=>(const CircularBufferIterator<BufferType1, true>& lhs,
+            const CircularBufferIterator<BufferType2, true>& rhs) noexcept
+{
+    return lhs.m_index <=> rhs.m_index;
+}
+
+template <typename BufferType1, typename BufferType2>
+constexpr auto
+operator<=>(const CircularBufferIterator<BufferType1, false>& lhs,
+            const CircularBufferIterator<BufferType2, false>& rhs) noexcept
 {
     return lhs.m_index <=> rhs.m_index;
 }

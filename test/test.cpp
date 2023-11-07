@@ -35,10 +35,31 @@ struct MoveOnly
 
 struct CopyOnly
 {
-    CopyOnly() = default;
-    CopyOnly(const CopyOnly&) = default;
+    CopyOnly()
+    {
+        data = new int[3]{};
+    }
+    ~CopyOnly()
+    {
+        delete[] data;
+    }
+    CopyOnly(const CopyOnly& o)
+    {
+        data = new int[3];
+        std::copy(o.data, o.data + 3, data);
+    }
     CopyOnly&
-    operator=(const CopyOnly&) = default;
+    operator=(const CopyOnly& o)
+    {
+        if (this != &o)
+        {
+            delete[] data;
+            data = new int[3];
+            std::copy(o.data, o.data + 3, data);
+        }
+        return *this;
+    }
+    int* data = nullptr;
 };
 
 struct NoDefaultConstructor
@@ -193,6 +214,39 @@ TEST_CASE("test_iterator_deref")
                                                    std::as_const(cb).end())));
 }
 
+TEST_CASE("test_reverse_iterator_deref")
+{
+    using Buf = circbuf::CircularBuffer<int, 5>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    cb.push_back(44);
+    // begin
+    REQUIRE(*cb.rbegin() == 44);
+    REQUIRE(*std::as_const(cb).rbegin() == 44);
+    REQUIRE(cb.rbegin().operator->() == 44);
+    REQUIRE(std::as_const(cb).rbegin().operator->() == 44);
+    REQUIRE(cb.rbegin()[0] == 44);
+    REQUIRE(std::as_const(cb).rbegin()[0] == 44);
+    REQUIRE(cb.rbegin()[2] == 42);
+    REQUIRE(std::as_const(cb).rbegin()[2] == 42);
+    // end
+    REQUIRE(*(--cb.rend()) == 42);
+    REQUIRE(*(--std::as_const(cb).rend()) == 42);
+    REQUIRE((--cb.rend()).operator->() == 42);
+    REQUIRE((--std::as_const(cb).rend()).operator->() == 42);
+    REQUIRE(cb.rend()[-1] == 42);
+    REQUIRE(std::as_const(cb).rend()[-1] == 42);
+    REQUIRE(cb.rend()[-3] == 44);
+    REQUIRE(std::as_const(cb).rend()[-3] == 44);
+    // distance
+    REQUIRE(cb.size() ==
+            static_cast<std::size_t>(std::distance(cb.rbegin(), cb.rend())));
+    REQUIRE(cb.size() ==
+            static_cast<std::size_t>(std::distance(std::as_const(cb).rbegin(),
+                                                   std::as_const(cb).rend())));
+}
+
 TEST_CASE("test_iterator_increment")
 {
     using Buf = circbuf::CircularBuffer<int, 5>;
@@ -211,6 +265,27 @@ TEST_CASE("test_iterator_increment")
     it2 += 3;
     REQUIRE(45 == *it2);
     auto it3 = std::as_const(cb).begin() + 1;
+    REQUIRE(4 == it2 + it3);
+}
+
+TEST_CASE("test_reverse_iterator_increment")
+{
+    using Buf = circbuf::CircularBuffer<int, 5>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    cb.push_back(44);
+    cb.push_back(45);
+    cb.push_back(46);
+    auto it = cb.rbegin();
+    REQUIRE(45 == *(++it));
+    REQUIRE(45 == *it);
+    REQUIRE(45 == *(it++));
+    REQUIRE(42 == *(it + 2));
+    auto it2 = cb.rbegin();
+    it2 += 3;
+    REQUIRE(43 == *it2);
+    auto it3 = std::as_const(cb).rbegin() + 1;
     REQUIRE(4 == it2 + it3);
 }
 
@@ -233,6 +308,28 @@ TEST_CASE("test_iterator_decrement")
     it2 -= 3;
     REQUIRE(44 == *it2);
     auto it3 = std::as_const(cb).end() - 1;
+    REQUIRE(2 == it3 - it2);
+}
+
+TEST_CASE("test_reverse_iterator_decrement")
+{
+    using Buf = circbuf::CircularBuffer<int, 5>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    cb.push_back(44);
+    cb.push_back(45);
+    cb.push_back(46);
+    auto it = cb.rend();
+    --it;
+    REQUIRE(43 == *(--it));
+    REQUIRE(43 == *it);
+    REQUIRE(43 == *(it--));
+    REQUIRE(46 == *(it - 2));
+    auto it2 = cb.rend();
+    it2 -= 3;
+    REQUIRE(44 == *it2);
+    auto it3 = std::as_const(cb).rend() - 1;
     REQUIRE(2 == it3 - it2);
 }
 
@@ -259,6 +356,29 @@ TEST_CASE("test_iterator_comparison")
     REQUIRE(it2 > it);
 }
 
+TEST_CASE("test_reverse_iterator_comparison")
+{
+    using Buf = circbuf::CircularBuffer<int, 5>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    cb.push_back(44);
+    cb.push_back(45);
+    cb.push_back(46);
+    auto it = cb.rbegin();
+    auto it2 = std::as_const(cb).rbegin();
+    REQUIRE(it == it2);
+    ++it;
+    ++it2;
+    REQUIRE(it == it2);
+    REQUIRE(it <= it2);
+    REQUIRE(it2 >= it);
+    ++it2;
+    REQUIRE(it != it2);
+    REQUIRE(it < it2);
+    REQUIRE(it2 > it);
+}
+
 TEST_CASE("test_global_begin_end")
 {
     using Buf = circbuf::CircularBuffer<int, 5>;
@@ -270,6 +390,23 @@ TEST_CASE("test_global_begin_end")
     auto it2 = std::end(cb) - 1;
     REQUIRE(42 == *it);
     REQUIRE(44 == *it2);
+    REQUIRE(std::begin(cb) == std::cbegin(cb));
+    REQUIRE(std::end(cb) == std::cend(cb));
+}
+
+TEST_CASE("test_global_rbegin_rend")
+{
+    using Buf = circbuf::CircularBuffer<int, 5>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    cb.push_back(44);
+    auto it = std::rbegin(cb);
+    auto it2 = std::rend(cb) - 1;
+    REQUIRE(44 == *it);
+    REQUIRE(42 == *it2);
+    REQUIRE(std::rbegin(cb) == std::crbegin(cb));
+    REQUIRE(std::rend(cb) == std::crend(cb));
 }
 
 TEST_CASE("test_for_loop")
@@ -320,4 +457,15 @@ TEST_CASE("test_cleanup")
     using Buf = circbuf::CircularBuffer<MoveOnly, 3>;
     Buf cb;
     cb.push_back(MoveOnly{});
+}
+
+TEST_CASE("test_const_iterator_methods")
+{
+    using Buf = circbuf::CircularBuffer<CopyOnly, 3>;
+    Buf cb;
+    cb.push_back(CopyOnly{});
+    REQUIRE(std::as_const(cb).begin() == cb.cbegin());
+    REQUIRE(std::as_const(cb).end() == cb.cend());
+    REQUIRE(std::as_const(cb).rbegin() == cb.crbegin());
+    REQUIRE(std::as_const(cb).rend() == cb.crend());
 }
