@@ -441,110 +441,90 @@ public:
     }
 
 private:
-    template <typename BufferType1, typename BufferType2>
+    template <typename BufferType1,
+              bool Reverse1,
+              typename BufferType2,
+              bool Reverse2>
+        requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
     friend constexpr typename BufferType1::difference_type
-    operator+(const CircularBufferIterator<BufferType1, true>&,
-              const CircularBufferIterator<BufferType2, true>&) noexcept;
+    operator+(const CircularBufferIterator<BufferType1, Reverse1>&,
+              const CircularBufferIterator<BufferType2, Reverse2>&) noexcept;
 
-    template <typename BufferType1, typename BufferType2>
+    template <typename BufferType1,
+              bool Reverse1,
+              typename BufferType2,
+              bool Reverse2>
+        requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
     friend constexpr typename BufferType1::difference_type
-    operator+(const CircularBufferIterator<BufferType1, false>&,
-              const CircularBufferIterator<BufferType2, false>&) noexcept;
+    operator-(const CircularBufferIterator<BufferType1, Reverse1>&,
+              const CircularBufferIterator<BufferType2, Reverse2>&) noexcept;
 
-    template <typename BufferType1, typename BufferType2>
-    friend constexpr typename BufferType1::difference_type
-    operator-(const CircularBufferIterator<BufferType1, true>&,
-              const CircularBufferIterator<BufferType2, true>&) noexcept;
-
-    template <typename BufferType1, typename BufferType2>
-    friend constexpr typename BufferType1::difference_type
-    operator-(const CircularBufferIterator<BufferType1, false>&,
-              const CircularBufferIterator<BufferType2, false>&) noexcept;
-
-    template <typename BufferType1, typename BufferType2>
+    template <typename BufferType1,
+              bool Reverse1,
+              typename BufferType2,
+              bool Reverse2>
+        requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
     friend constexpr bool
-    operator==(const CircularBufferIterator<BufferType1, true>&,
-               const CircularBufferIterator<BufferType2, true>&) noexcept;
+    operator==(const CircularBufferIterator<BufferType1, Reverse1>&,
+               const CircularBufferIterator<BufferType2, Reverse2>&) noexcept;
 
-    template <typename BufferType1, typename BufferType2>
-    friend constexpr bool
-    operator==(const CircularBufferIterator<BufferType1, false>&,
-               const CircularBufferIterator<BufferType2, false>&) noexcept;
-
-    template <typename BufferType1, typename BufferType2>
+    template <typename BufferType1,
+              bool Reverse1,
+              typename BufferType2,
+              bool Reverse2>
+        requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
     friend constexpr auto
-    operator<=>(const CircularBufferIterator<BufferType1, true>&,
-                const CircularBufferIterator<BufferType2, true>&) noexcept;
-
-    template <typename BufferType1, typename BufferType2>
-    friend constexpr auto
-    operator<=>(const CircularBufferIterator<BufferType1, false>&,
-                const CircularBufferIterator<BufferType2, false>&) noexcept;
+    operator<=>(const CircularBufferIterator<BufferType1, Reverse1>&,
+                const CircularBufferIterator<BufferType2, Reverse2>&) noexcept;
 
     std::reference_wrapper<BufferType> m_buffer;
     size_type m_index;
 };
 
-template <typename BufferType1, typename BufferType2>
+template <typename BufferType1,
+          bool Reverse1,
+          typename BufferType2,
+          bool Reverse2>
+    requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
 constexpr typename BufferType1::difference_type
-operator+(const CircularBufferIterator<BufferType1, true>& lhs,
-          const CircularBufferIterator<BufferType2, true>& rhs) noexcept
+operator+(const CircularBufferIterator<BufferType1, Reverse1>& lhs,
+          const CircularBufferIterator<BufferType2, Reverse2>& rhs) noexcept
 {
     return lhs.m_index + rhs.m_index;
 }
 
-template <typename BufferType1, typename BufferType2>
+template <typename BufferType1,
+          bool Reverse1,
+          typename BufferType2,
+          bool Reverse2>
+    requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
 constexpr typename BufferType1::difference_type
-operator+(const CircularBufferIterator<BufferType1, false>& lhs,
-          const CircularBufferIterator<BufferType2, false>& rhs) noexcept
-{
-    return lhs.m_index + rhs.m_index;
-}
-
-template <typename BufferType1, typename BufferType2>
-constexpr typename BufferType1::difference_type
-operator-(const CircularBufferIterator<BufferType1, true>& lhs,
-          const CircularBufferIterator<BufferType2, true>& rhs) noexcept
+operator-(const CircularBufferIterator<BufferType1, Reverse1>& lhs,
+          const CircularBufferIterator<BufferType2, Reverse2>& rhs) noexcept
 {
     return lhs.m_index - rhs.m_index;
 }
 
-template <typename BufferType1, typename BufferType2>
-constexpr typename BufferType1::difference_type
-operator-(const CircularBufferIterator<BufferType1, false>& lhs,
-          const CircularBufferIterator<BufferType2, false>& rhs) noexcept
-{
-    return lhs.m_index - rhs.m_index;
-}
-
-template <typename BufferType1, typename BufferType2>
+template <typename BufferType1,
+          bool Reverse1,
+          typename BufferType2,
+          bool Reverse2>
+    requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
 constexpr bool
-operator==(const CircularBufferIterator<BufferType1, true>& lhs,
-           const CircularBufferIterator<BufferType2, true>& rhs) noexcept
+operator==(const CircularBufferIterator<BufferType1, Reverse1>& lhs,
+           const CircularBufferIterator<BufferType2, Reverse2>& rhs) noexcept
 {
     return lhs.m_index == rhs.m_index;
 }
 
-template <typename BufferType1, typename BufferType2>
-constexpr bool
-operator==(const CircularBufferIterator<BufferType1, false>& lhs,
-           const CircularBufferIterator<BufferType2, false>& rhs) noexcept
-{
-    return lhs.m_index == rhs.m_index;
-}
-
-template <typename BufferType1, typename BufferType2>
+template <typename BufferType1,
+          bool Reverse1,
+          typename BufferType2,
+          bool Reverse2>
+    requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
 constexpr auto
-operator<=>(const CircularBufferIterator<BufferType1, true>& lhs,
-            const CircularBufferIterator<BufferType2, true>& rhs) noexcept
-{
-    return lhs.m_index <=> rhs.m_index;
-}
-
-template <typename BufferType1, typename BufferType2>
-constexpr auto
-operator<=>(const CircularBufferIterator<BufferType1, false>& lhs,
-            const CircularBufferIterator<BufferType2, false>& rhs) noexcept
+operator<=>(const CircularBufferIterator<BufferType1, Reverse1>& lhs,
+            const CircularBufferIterator<BufferType2, Reverse2>& rhs) noexcept
 {
     return lhs.m_index <=> rhs.m_index;
 }
