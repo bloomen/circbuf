@@ -28,36 +28,44 @@ public:
 
     constexpr CircularBuffer() = default;
 
-    ~CircularBuffer()
+    ~CircularBuffer() noexcept(std::is_nothrow_destructible_v<value_type>)
     {
         destruct();
     }
 
-    constexpr CircularBuffer(const CircularBuffer& other)
+    constexpr CircularBuffer(const CircularBuffer& other) noexcept(
+        std::is_nothrow_copy_constructible_v<value_type>)
     {
         copy_from(other);
     }
 
     constexpr CircularBuffer&
-    operator=(const CircularBuffer& other)
+    operator=(const CircularBuffer& other) noexcept(
+        std::is_nothrow_destructible_v<value_type>&&
+            std::is_nothrow_copy_constructible_v<value_type>)
     {
         if (this != &other)
         {
+            clear();
             copy_from(other);
         }
         return *this;
     }
 
-    constexpr CircularBuffer(CircularBuffer&& other)
+    constexpr CircularBuffer(CircularBuffer&& other) noexcept(
+        std::is_nothrow_move_constructible_v<value_type>)
     {
         move_from(std::move(other));
     }
 
     constexpr CircularBuffer&
-    operator=(CircularBuffer&& other)
+    operator=(CircularBuffer&& other) noexcept(
+        std::is_nothrow_destructible_v<value_type>&&
+            std::is_nothrow_move_constructible_v<value_type>)
     {
         if (this != &other)
         {
+            clear();
             move_from(std::move(other));
         }
         return *this;
@@ -88,7 +96,7 @@ public:
     }
 
     constexpr void
-    clear() noexcept
+    clear() noexcept(std::is_nothrow_destructible_v<value_type>)
     {
         destruct();
         m_size = 0;
@@ -132,34 +140,41 @@ public:
         return at(m_tail);
     }
 
+    constexpr void
+    push_back(const value_type& value) noexcept(
+        std::is_nothrow_copy_constructible_v<value_type>)
+    {
+        increment();
+        new (m_data[m_tail]) value_type{value};
+    }
+
+    constexpr void
+    push_back(value_type&& value) noexcept(
+        std::is_nothrow_move_constructible_v<value_type>)
+    {
+        increment();
+        new (m_data[m_tail]) value_type{std::move(value)};
+    }
+
     template <typename... Type>
     constexpr void
-    push_back(Type&&... value)
+    push_back(Type&&... value) noexcept(
+        std::is_nothrow_constructible_v<value_type>)
     {
-        if (empty())
-        {
-            ++m_size;
-        }
-        else if (full())
-        {
-            m_head = (m_head + 1) % MaxSize;
-            m_tail = (m_tail + 1) % MaxSize;
-        }
-        else
-        {
-            ++m_tail;
-            ++m_size;
-        }
+        increment();
         new (m_data[m_tail]) value_type{std::forward<Type>(value)...};
     }
 
     constexpr value_type
-    pop_front()
+    pop_front() noexcept(
+        std::is_nothrow_destructible_v<value_type>&&
+            std::is_nothrow_move_constructible_v<value_type>&&
+                std::is_nothrow_copy_constructible_v<value_type>)
     {
         const auto index = m_head;
         m_head = (m_head + 1) % MaxSize;
         --m_size;
-        auto value = std::move(at(index));
+        value_type value{std::move(at(index))};
         at(index).~value_type();
         return value;
     }
@@ -241,19 +256,19 @@ private:
     friend class CircularBufferIterator;
 
     value_type&
-    at(const size_type index)
+    at(const size_type index) noexcept
     {
         return *reinterpret_cast<value_type*>(&m_data[index]);
     }
 
     const value_type&
-    at(const size_type index) const
+    at(const size_type index) const noexcept
     {
         return *reinterpret_cast<const value_type*>(&m_data[index]);
     }
 
     constexpr void
-    destruct() noexcept
+    destruct() noexcept(std::is_nothrow_destructible_v<value_type>)
     {
         for (auto& value : *this)
         {
@@ -262,9 +277,9 @@ private:
     }
 
     constexpr void
-    copy_from(const CircularBuffer& other)
+    copy_from(const CircularBuffer& other) noexcept(
+        std::is_nothrow_copy_constructible_v<value_type>)
     {
-        clear();
         for (const auto& value : other)
         {
             push_back(value);
@@ -272,9 +287,9 @@ private:
     }
 
     constexpr void
-    move_from(CircularBuffer&& other)
+    move_from(CircularBuffer&& other) noexcept(
+        std::is_nothrow_move_constructible_v<value_type>)
     {
-        clear();
         for (auto&& value : other)
         {
             push_back(std::move(value));
@@ -282,6 +297,25 @@ private:
         other.m_size = 0;
         other.m_head = 0;
         other.m_tail = 0;
+    }
+
+    constexpr void
+    increment() noexcept
+    {
+        if (empty())
+        {
+            ++m_size;
+        }
+        else if (full())
+        {
+            m_head = (m_head + 1) % MaxSize;
+            m_tail = (m_tail + 1) % MaxSize;
+        }
+        else
+        {
+            ++m_tail;
+            ++m_size;
+        }
     }
 
     using Memory = unsigned char[sizeof(value_type)];
