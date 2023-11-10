@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <type_traits>
@@ -296,12 +295,44 @@ operator==(const CircularBuffer<T, MaxSize1>& lhs,
 }
 
 template <typename T, std::size_t MaxSize1, std::size_t MaxSize2>
-constexpr auto
-operator<=>(const CircularBuffer<T, MaxSize1>& lhs,
-            const CircularBuffer<T, MaxSize2>& rhs) noexcept
+constexpr bool
+operator!=(const CircularBuffer<T, MaxSize1>& lhs,
+           const CircularBuffer<T, MaxSize2>& rhs) noexcept
 {
-    return std::lexicographical_compare_three_way(
+    return !(lhs == rhs);
+}
+
+template <typename T, std::size_t MaxSize1, std::size_t MaxSize2>
+constexpr bool
+operator<(const CircularBuffer<T, MaxSize1>& lhs,
+          const CircularBuffer<T, MaxSize2>& rhs) noexcept
+{
+    return std::lexicographical_compare(
         lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+template <typename T, std::size_t MaxSize1, std::size_t MaxSize2>
+constexpr bool
+operator>(const CircularBuffer<T, MaxSize1>& lhs,
+          const CircularBuffer<T, MaxSize2>& rhs) noexcept
+{
+    return rhs < lhs;
+}
+
+template <typename T, std::size_t MaxSize1, std::size_t MaxSize2>
+constexpr bool
+operator<=(const CircularBuffer<T, MaxSize1>& lhs,
+           const CircularBuffer<T, MaxSize2>& rhs) noexcept
+{
+    return !(lhs > rhs);
+}
+
+template <typename T, std::size_t MaxSize1, std::size_t MaxSize2>
+constexpr bool
+operator>=(const CircularBuffer<T, MaxSize1>& lhs,
+           const CircularBuffer<T, MaxSize2>& rhs) noexcept
+{
+    return !(lhs < rhs);
 }
 
 template <typename BufferType, bool Reverse>
