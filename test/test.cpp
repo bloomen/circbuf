@@ -75,7 +75,7 @@ TEST_CASE("test_roundtrip")
 {
     using Buf = circbuf::CircularBuffer<int, 2>;
     Buf cb;
-    REQUIRE(2 == cb.capacity());
+    REQUIRE(2 == cb.max_size());
     REQUIRE(0 == cb.size());
     REQUIRE(cb.empty());
     REQUIRE(!cb.full());

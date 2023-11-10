@@ -8,8 +8,8 @@ namespace circbuf
 template <typename BufferType, bool Reverse>
 class CircularBufferIterator;
 
-template <typename T, std::size_t Capacity>
-    requires(Capacity > 0)
+template <typename T, std::size_t MaxSize>
+    requires(MaxSize > 0)
 class CircularBuffer
 {
 public:
@@ -78,9 +78,9 @@ public:
     }
 
     constexpr static size_type
-    capacity() noexcept
+    max_size() noexcept
     {
-        return Capacity;
+        return MaxSize;
     }
 
     constexpr size_type
@@ -98,7 +98,7 @@ public:
     constexpr bool
     full() const noexcept
     {
-        return m_size == Capacity;
+        return m_size == MaxSize;
     }
 
     constexpr void
@@ -113,13 +113,13 @@ public:
     constexpr reference
     operator[](const size_type index) noexcept
     {
-        return at((m_head + index) % Capacity);
+        return at((m_head + index) % MaxSize);
     }
 
     constexpr const_reference
     operator[](const size_type index) const noexcept
     {
-        return at((m_head + index) % Capacity);
+        return at((m_head + index) % MaxSize);
     }
 
     constexpr reference
@@ -156,8 +156,8 @@ public:
         }
         else if (full())
         {
-            m_head = (m_head + 1) % Capacity;
-            m_tail = (m_tail + 1) % Capacity;
+            m_head = (m_head + 1) % MaxSize;
+            m_tail = (m_tail + 1) % MaxSize;
         }
         else
         {
@@ -171,7 +171,7 @@ public:
     pop_front()
     {
         const auto index = m_head;
-        m_head = (m_head + 1) % Capacity;
+        m_head = (m_head + 1) % MaxSize;
         --m_size;
         auto value = std::move(at(index));
         at(index).~value_type();
@@ -276,30 +276,22 @@ private:
     }
 
     using Memory = unsigned char[sizeof(value_type)];
-    std::array<Memory, Capacity> m_data;
+    std::array<Memory, MaxSize> m_data;
     size_type m_size{};
     size_type m_head{};
     size_type m_tail{};
 };
 
-template <typename T, std::size_t Capacity>
+template <typename T, std::size_t MaxSize1, std::size_t MaxSize2>
 constexpr bool
-operator==(const CircularBuffer<T, Capacity>& lhs,
-           const CircularBuffer<T, Capacity>& rhs) noexcept
+operator==(const CircularBuffer<T, MaxSize1>& lhs,
+           const CircularBuffer<T, MaxSize2>& rhs) noexcept
 {
     if (lhs.size() != rhs.size())
     {
         return false;
     }
-    for (typename CircularBuffer<T, Capacity>::size_type i = 0; i < lhs.size();
-         ++i)
-    {
-        if (lhs[i] != rhs[i])
-        {
-            return false;
-        }
-    }
-    return true;
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
 template <typename BufferType, bool Reverse>
@@ -330,12 +322,12 @@ public:
         {
             return m_buffer.get().at(
                 (m_buffer.get().m_head + m_buffer.get().m_size - m_index - 1) %
-                BufferType::capacity());
+                BufferType::max_size());
         }
         else
         {
             return m_buffer.get().at((m_buffer.get().m_head + m_index) %
-                                     BufferType::capacity());
+                                     BufferType::max_size());
         }
     }
 
@@ -346,12 +338,12 @@ public:
         {
             return m_buffer.get().at(
                 (m_buffer.get().m_head + m_buffer.get().m_size - m_index - 1) %
-                BufferType::capacity());
+                BufferType::max_size());
         }
         else
         {
             return m_buffer.get().at((m_buffer.get().m_head + m_index) %
-                                     BufferType::capacity());
+                                     BufferType::max_size());
         }
     }
 
@@ -394,7 +386,7 @@ public:
     operator+=(const difference_type offset)
     {
         const difference_type next =
-            (m_index + offset) % BufferType::capacity();
+            (m_index + offset) % BufferType::max_size();
         m_index = next;
         return *this;
     }
