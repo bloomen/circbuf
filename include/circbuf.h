@@ -294,6 +294,15 @@ operator==(const CircularBuffer<T, MaxSize1>& lhs,
     return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
+template <typename T, std::size_t MaxSize1, std::size_t MaxSize2>
+constexpr auto
+operator<=>(const CircularBuffer<T, MaxSize1>& lhs,
+            const CircularBuffer<T, MaxSize2>& rhs) noexcept
+{
+    return std::lexicographical_compare_three_way(
+        lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
 template <typename BufferType, bool Reverse>
 class CircularBufferIterator
 {

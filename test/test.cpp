@@ -181,6 +181,40 @@ TEST_CASE("test_comparison")
     REQUIRE(cb != cb2);
 }
 
+TEST_CASE("test_smaller")
+{
+    using Buf = circbuf::CircularBuffer<int, 3>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    auto cb2 = cb;
+    REQUIRE(cb <= cb2);
+    cb2[1] = 44;
+    REQUIRE(cb < cb2);
+    REQUIRE(cb <= cb2);
+    cb2[1] = 43;
+    cb.push_back(45);
+    REQUIRE(cb2 < cb);
+    REQUIRE(cb2 <= cb);
+}
+
+TEST_CASE("test_greater")
+{
+    using Buf = circbuf::CircularBuffer<int, 3>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    auto cb2 = cb;
+    REQUIRE(cb >= cb2);
+    cb2[1] = 41;
+    REQUIRE(cb > cb2);
+    REQUIRE(cb >= cb2);
+    cb2[1] = 43;
+    cb2.push_back(45);
+    REQUIRE(cb2 > cb);
+    REQUIRE(cb2 >= cb);
+}
+
 TEST_CASE("test_iterator_deref")
 {
     using Buf = circbuf::CircularBuffer<int, 5>;
