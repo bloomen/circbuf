@@ -34,11 +34,8 @@ public:
     }
 
     constexpr CircularBuffer(const CircularBuffer& other)
-        : m_data{other.m_data}
-        , m_size{other.m_size}
-        , m_head{other.m_head}
-        , m_tail{other.m_tail}
     {
+        copy_from(other);
     }
 
     constexpr CircularBuffer&
@@ -46,21 +43,14 @@ public:
     {
         if (this != &other)
         {
-            destruct();
-            m_data = other.m_data;
-            m_size = other.m_size;
-            m_head = other.m_head;
-            m_tail = other.m_tail;
+            copy_from(other);
         }
         return *this;
     }
 
     constexpr CircularBuffer(CircularBuffer&& other)
-        : m_data{std::move(other.m_data)}
     {
-        std::swap(m_size, other.m_size);
-        std::swap(m_head, other.m_head);
-        std::swap(m_tail, other.m_tail);
+        move_from(std::move(other));
     }
 
     constexpr CircularBuffer&
@@ -68,11 +58,7 @@ public:
     {
         if (this != &other)
         {
-            clear();
-            m_data = std::move(other.m_data);
-            std::swap(m_size, other.m_size);
-            std::swap(m_head, other.m_head);
-            std::swap(m_tail, other.m_tail);
+            move_from(std::move(other));
         }
         return *this;
     }
@@ -269,10 +255,33 @@ private:
     constexpr void
     destruct() noexcept
     {
-        for (size_type i = 0; i < m_size; ++i)
+        for (auto& value : *this)
         {
-            at(i).~value_type();
+            value.~value_type();
         }
+    }
+
+    constexpr void
+    copy_from(const CircularBuffer& other)
+    {
+        clear();
+        for (const auto& value : other)
+        {
+            push_back(value);
+        }
+    }
+
+    constexpr void
+    move_from(CircularBuffer&& other)
+    {
+        clear();
+        for (auto&& value : other)
+        {
+            push_back(std::move(value));
+        }
+        other.m_size = 0;
+        other.m_head = 0;
+        other.m_tail = 0;
     }
 
     using Memory = unsigned char[sizeof(value_type)];
