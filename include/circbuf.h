@@ -28,7 +28,8 @@ public:
 
     constexpr CircularBuffer() = default;
 
-    ~CircularBuffer() noexcept(std::is_nothrow_destructible_v<value_type>)
+    constexpr ~CircularBuffer() noexcept(
+        std::is_nothrow_destructible_v<value_type>)
     {
         destruct();
     }
@@ -270,9 +271,9 @@ private:
     constexpr void
     destruct() noexcept(std::is_nothrow_destructible_v<value_type>)
     {
-        for (auto& value : *this)
+        for (auto value = rbegin(); value != rend(); ++value)
         {
-            value.~value_type();
+            (*value).~value_type();
         }
     }
 

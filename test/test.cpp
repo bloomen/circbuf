@@ -596,3 +596,13 @@ TEST_CASE("test_ranges_sort")
     REQUIRE(cb == cb2);
 }
 #endif
+
+TEST_CASE("test_with_vector")
+{
+    std::vector<int> vec{1, 2, 3, 4, 5};
+    using Buf = circbuf::CircularBuffer<std::vector<int>, 3>;
+    Buf cb;
+    cb.push_back(vec);
+    cb.pop_front();
+    REQUIRE(cb.empty());
+}
