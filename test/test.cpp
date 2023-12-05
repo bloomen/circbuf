@@ -1,7 +1,10 @@
 #define CATCH_CONFIG_MAIN
 #include "catch_amalgamated.hpp"
 #include "circbuf.h"
+
+#ifndef __APPLE__ // no ranges support on Apple platform
 #include <ranges>
+#endif
 
 static_assert(std::is_same<std::random_access_iterator_tag,
                            typename std::iterator_traits<
@@ -30,12 +33,14 @@ static_assert(
                      iterator_category>::value,
     "const reverse iterator is random access");
 
+#ifndef __APPLE__ // no ranges support on Apple platform
 static_assert(std::ranges::random_access_range<circbuf::CircularBuffer<int, 3>>,
               "buffer is random access range");
 
 static_assert(
     std::ranges::random_access_range<const circbuf::CircularBuffer<int, 3>>,
     "const buffer is random access range");
+#endif
 
 namespace
 {
@@ -563,6 +568,7 @@ TEST_CASE("test_iterator_copy")
     REQUIRE(*it == *it3);
 }
 
+#ifndef __APPLE__ // no ranges support on Apple platform
 TEST_CASE("test_ranges_begin_end")
 {
     using Buf = circbuf::CircularBuffer<int, 3>;
@@ -589,3 +595,4 @@ TEST_CASE("test_ranges_sort")
     cb2.push_back(44);
     REQUIRE(cb == cb2);
 }
+#endif
