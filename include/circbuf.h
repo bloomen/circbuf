@@ -174,7 +174,7 @@ public:
         const auto index = m_head;
         m_head = (m_head + 1) % MaxSize;
         --m_size;
-        value_type value{std::move(at(index))};
+        auto value = std::move(at(index));
         at(index).~value_type();
         return value;
     }
@@ -390,55 +390,58 @@ public:
     using const_reference = const value_type&;
     using pointer = value_type*;
     using const_pointer = const value_type*;
+    using iterator_category = std::random_access_iterator_tag;
+    using contained_ref = std::
+        conditional_t<std::is_const_v<BufferType>, const_reference, reference>;
+
+    explicit constexpr CircularBufferIterator() = default;
 
     explicit constexpr CircularBufferIterator(BufferType& buffer,
                                               const size_type index)
-        : m_buffer{buffer}
+        : m_buffer{&buffer}
         , m_index{index}
     {
     }
 
-    constexpr reference
+    constexpr contained_ref
     operator*() noexcept
-        requires(!std::is_const_v<BufferType>)
     {
         if constexpr (Reverse)
         {
-            return m_buffer.get().at(
-                (m_buffer.get().m_head + m_buffer.get().m_size - m_index - 1) %
+            return m_buffer->at(
+                (m_buffer->m_head + m_buffer->m_size - m_index - 1) %
                 BufferType::max_size());
         }
         else
         {
-            return m_buffer.get().at((m_buffer.get().m_head + m_index) %
-                                     BufferType::max_size());
+            return m_buffer->at((m_buffer->m_head + m_index) %
+                                BufferType::max_size());
         }
     }
 
-    constexpr const_reference
+    constexpr contained_ref
     operator*() const noexcept
     {
         if constexpr (Reverse)
         {
-            return m_buffer.get().at(
-                (m_buffer.get().m_head + m_buffer.get().m_size - m_index - 1) %
+            return m_buffer->at(
+                (m_buffer->m_head + m_buffer->m_size - m_index - 1) %
                 BufferType::max_size());
         }
         else
         {
-            return m_buffer.get().at((m_buffer.get().m_head + m_index) %
-                                     BufferType::max_size());
+            return m_buffer->at((m_buffer->m_head + m_index) %
+                                BufferType::max_size());
         }
     }
 
-    constexpr reference
+    constexpr contained_ref
     operator->() noexcept
-        requires(!std::is_const_v<BufferType>)
     {
         return this->operator*();
     }
 
-    constexpr const_reference
+    constexpr contained_ref
     operator->() const noexcept
     {
         return this->operator*();
@@ -503,14 +506,13 @@ public:
         return *this += -offset;
     }
 
-    value_type&
+    constexpr contained_ref
     operator[](const difference_type offset) noexcept
-        requires(!std::is_const_v<BufferType>)
     {
         return *(*this + offset);
     }
 
-    const value_type&
+    constexpr contained_ref
     operator[](const difference_type offset) const noexcept
     {
         return *(*this + offset);
@@ -521,7 +523,6 @@ private:
               bool Reverse1,
               typename BufferType2,
               bool Reverse2>
-        requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
     friend constexpr typename BufferType1::difference_type
     operator+(const CircularBufferIterator<BufferType1, Reverse1>&,
               const CircularBufferIterator<BufferType2, Reverse2>&) noexcept;
@@ -530,7 +531,6 @@ private:
               bool Reverse1,
               typename BufferType2,
               bool Reverse2>
-        requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
     friend constexpr typename BufferType1::difference_type
     operator-(const CircularBufferIterator<BufferType1, Reverse1>&,
               const CircularBufferIterator<BufferType2, Reverse2>&) noexcept;
@@ -539,7 +539,6 @@ private:
               bool Reverse1,
               typename BufferType2,
               bool Reverse2>
-        requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
     friend constexpr bool
     operator==(const CircularBufferIterator<BufferType1, Reverse1>&,
                const CircularBufferIterator<BufferType2, Reverse2>&) noexcept;
@@ -548,20 +547,24 @@ private:
               bool Reverse1,
               typename BufferType2,
               bool Reverse2>
-        requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
     friend constexpr auto
     operator<=>(const CircularBufferIterator<BufferType1, Reverse1>&,
                 const CircularBufferIterator<BufferType2, Reverse2>&) noexcept;
 
-    std::reference_wrapper<BufferType> m_buffer;
-    size_type m_index;
+    template <typename BufferType1, bool Reverse1>
+    friend constexpr auto
+    operator-(const typename CircularBufferIterator<BufferType1,
+                                                    Reverse1>::difference_type&,
+              const CircularBufferIterator<BufferType1, Reverse1>&) noexcept;
+
+    BufferType* m_buffer{};
+    size_type m_index{};
 };
 
 template <typename BufferType1,
           bool Reverse1,
           typename BufferType2,
           bool Reverse2>
-    requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
 constexpr typename BufferType1::difference_type
 operator+(const CircularBufferIterator<BufferType1, Reverse1>& lhs,
           const CircularBufferIterator<BufferType2, Reverse2>& rhs) noexcept
@@ -573,7 +576,6 @@ template <typename BufferType1,
           bool Reverse1,
           typename BufferType2,
           bool Reverse2>
-    requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
 constexpr typename BufferType1::difference_type
 operator-(const CircularBufferIterator<BufferType1, Reverse1>& lhs,
           const CircularBufferIterator<BufferType2, Reverse2>& rhs) noexcept
@@ -585,7 +587,6 @@ template <typename BufferType1,
           bool Reverse1,
           typename BufferType2,
           bool Reverse2>
-    requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
 constexpr bool
 operator==(const CircularBufferIterator<BufferType1, Reverse1>& lhs,
            const CircularBufferIterator<BufferType2, Reverse2>& rhs) noexcept
@@ -597,12 +598,33 @@ template <typename BufferType1,
           bool Reverse1,
           typename BufferType2,
           bool Reverse2>
-    requires((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2))
 constexpr auto
 operator<=>(const CircularBufferIterator<BufferType1, Reverse1>& lhs,
             const CircularBufferIterator<BufferType2, Reverse2>& rhs) noexcept
 {
     return lhs.m_index <=> rhs.m_index;
+}
+
+template <typename BufferType, bool Reverse>
+constexpr auto
+operator+(
+    const typename CircularBufferIterator<BufferType, Reverse>::difference_type&
+        offset,
+    const CircularBufferIterator<BufferType, Reverse>& it) noexcept
+{
+    return it + offset;
+}
+
+template <typename BufferType, bool Reverse>
+constexpr auto
+operator-(
+    const typename CircularBufferIterator<BufferType, Reverse>::difference_type&
+        offset,
+    const CircularBufferIterator<BufferType, Reverse>& it) noexcept
+{
+    auto temp = it;
+    temp.m_index = (offset - it.m_index) % BufferType::max_size();
+    return temp;
 }
 
 } // namespace circbuf

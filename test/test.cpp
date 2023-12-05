@@ -1,6 +1,41 @@
 #define CATCH_CONFIG_MAIN
 #include "catch_amalgamated.hpp"
 #include "circbuf.h"
+#include <ranges>
+
+static_assert(std::is_same<std::random_access_iterator_tag,
+                           typename std::iterator_traits<
+                               circbuf::CircularBuffer<int, 3>::iterator>::
+                               iterator_category>::value,
+              "iterator is random access");
+
+static_assert(
+    std::is_same<std::random_access_iterator_tag,
+                 typename std::iterator_traits<
+                     circbuf::CircularBuffer<int, 3>::const_iterator>::
+                     iterator_category>::value,
+    "const iterator is random access");
+
+static_assert(
+    std::is_same<std::random_access_iterator_tag,
+                 typename std::iterator_traits<
+                     circbuf::CircularBuffer<int, 3>::reverse_iterator>::
+                     iterator_category>::value,
+    "reverse iterator is random access");
+
+static_assert(
+    std::is_same<std::random_access_iterator_tag,
+                 typename std::iterator_traits<
+                     circbuf::CircularBuffer<int, 3>::const_reverse_iterator>::
+                     iterator_category>::value,
+    "const reverse iterator is random access");
+
+static_assert(std::ranges::random_access_range<circbuf::CircularBuffer<int, 3>>,
+              "buffer is random access range");
+
+static_assert(
+    std::ranges::random_access_range<const circbuf::CircularBuffer<int, 3>>,
+    "const buffer is random access range");
 
 namespace
 {
@@ -300,6 +335,8 @@ TEST_CASE("test_iterator_increment")
     REQUIRE(45 == *it2);
     auto it3 = std::as_const(cb).begin() + 1;
     REQUIRE(4 == it2 + it3);
+    auto it4 = 2 + it3;
+    REQUIRE(45 == *it4);
 }
 
 TEST_CASE("test_reverse_iterator_increment")
@@ -321,6 +358,8 @@ TEST_CASE("test_reverse_iterator_increment")
     REQUIRE(43 == *it2);
     auto it3 = std::as_const(cb).rbegin() + 1;
     REQUIRE(4 == it2 + it3);
+    auto it4 = 2 + it3;
+    REQUIRE(43 == *it4);
 }
 
 TEST_CASE("test_iterator_decrement")
@@ -343,6 +382,8 @@ TEST_CASE("test_iterator_decrement")
     REQUIRE(44 == *it2);
     auto it3 = std::as_const(cb).end() - 1;
     REQUIRE(2 == it3 - it2);
+    auto it4 = 7 - it3;
+    REQUIRE(45 == *it4);
 }
 
 TEST_CASE("test_reverse_iterator_decrement")
@@ -365,6 +406,8 @@ TEST_CASE("test_reverse_iterator_decrement")
     REQUIRE(44 == *it2);
     auto it3 = std::as_const(cb).rend() - 1;
     REQUIRE(2 == it3 - it2);
+    auto it4 = 7 - it3;
+    REQUIRE(43 == *it4);
 }
 
 TEST_CASE("test_iterator_comparison")
@@ -502,4 +545,47 @@ TEST_CASE("test_const_iterator_methods")
     REQUIRE(std::as_const(cb).end() == cb.cend());
     REQUIRE(std::as_const(cb).rbegin() == cb.crbegin());
     REQUIRE(std::as_const(cb).rend() == cb.crend());
+}
+
+TEST_CASE("test_iterator_copy")
+{
+    using Buf = circbuf::CircularBuffer<int, 3>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    cb.push_back(44);
+    auto it = cb.begin();
+    ++it;
+    auto it2 = it;
+    REQUIRE(*it == *it2);
+    decltype(it) it3;
+    it3 = it;
+    REQUIRE(*it == *it3);
+}
+
+TEST_CASE("test_ranges_begin_end")
+{
+    using Buf = circbuf::CircularBuffer<int, 3>;
+    Buf cb;
+    cb.push_back(42);
+    cb.push_back(43);
+    cb.push_back(44);
+    auto begin = std::ranges::begin(cb);
+    auto end = std::ranges::end(cb);
+    REQUIRE(begin != end);
+}
+
+TEST_CASE("test_ranges_sort")
+{
+    using Buf = circbuf::CircularBuffer<int, 3>;
+    Buf cb;
+    cb.push_back(44);
+    cb.push_back(42);
+    cb.push_back(43);
+    std::ranges::sort(cb);
+    Buf cb2;
+    cb2.push_back(42);
+    cb2.push_back(43);
+    cb2.push_back(44);
+    REQUIRE(cb == cb2);
 }
