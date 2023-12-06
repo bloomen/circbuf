@@ -402,7 +402,7 @@ public:
     explicit constexpr CircularBufferIterator(BufferType& buffer,
                                               const size_type index)
         : m_buffer{&buffer}
-        , m_index{index}
+        , m_index{static_cast<difference_type>(index)}
     {
     }
 
@@ -411,14 +411,15 @@ public:
     {
         if constexpr (Reverse)
         {
-            return m_buffer->at(
-                (m_buffer->m_head + m_buffer->m_size - m_index - 1) %
-                BufferType::max_size());
+            return m_buffer->at((m_buffer->m_head + m_buffer->m_size -
+                                 static_cast<size_type>(m_index) - 1) %
+                                BufferType::max_size());
         }
         else
         {
-            return m_buffer->at((m_buffer->m_head + m_index) %
-                                BufferType::max_size());
+            return m_buffer->at(
+                (m_buffer->m_head + static_cast<size_type>(m_index)) %
+                BufferType::max_size());
         }
     }
 
@@ -427,14 +428,15 @@ public:
     {
         if constexpr (Reverse)
         {
-            return m_buffer->at(
-                (m_buffer->m_head + m_buffer->m_size - m_index - 1) %
-                BufferType::max_size());
+            return m_buffer->at((m_buffer->m_head + m_buffer->m_size -
+                                 static_cast<size_type>(m_index) - 1) %
+                                BufferType::max_size());
         }
         else
         {
-            return m_buffer->at((m_buffer->m_head + m_index) %
-                                BufferType::max_size());
+            return m_buffer->at(
+                (m_buffer->m_head + static_cast<size_type>(m_index)) %
+                BufferType::max_size());
         }
     }
 
@@ -561,7 +563,7 @@ private:
               const CircularBufferIterator<BufferType1, Reverse1>&) noexcept;
 
     BufferType* m_buffer{};
-    size_type m_index{};
+    difference_type m_index{};
 };
 
 template <typename BufferType1,
