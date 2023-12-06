@@ -273,7 +273,7 @@ private:
     {
         for (auto value = rbegin(); value != rend(); ++value)
         {
-            (*value).~value_type();
+            value->~value_type();
         }
     }
 
@@ -394,6 +394,8 @@ public:
     using iterator_category = std::random_access_iterator_tag;
     using contained_ref = std::
         conditional_t<std::is_const_v<BufferType>, const_reference, reference>;
+    using contained_ptr =
+        std::conditional_t<std::is_const_v<BufferType>, const_pointer, pointer>;
 
     explicit constexpr CircularBufferIterator() = default;
 
@@ -436,16 +438,16 @@ public:
         }
     }
 
-    constexpr contained_ref
+    constexpr contained_ptr
     operator->() noexcept
     {
-        return this->operator*();
+        return &this->operator*();
     }
 
-    constexpr contained_ref
+    constexpr contained_ptr
     operator->() const noexcept
     {
-        return this->operator*();
+        return &this->operator*();
     }
 
     constexpr self_type&

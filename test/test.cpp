@@ -265,8 +265,8 @@ TEST_CASE("test_iterator_deref")
     // begin
     REQUIRE(*cb.begin() == 42);
     REQUIRE(*std::as_const(cb).begin() == 42);
-    REQUIRE(cb.begin().operator->() == 42);
-    REQUIRE(std::as_const(cb).begin().operator->() == 42);
+    REQUIRE(*cb.begin().operator->() == 42);
+    REQUIRE(*std::as_const(cb).begin().operator->() == 42);
     REQUIRE(cb.begin()[0] == 42);
     REQUIRE(std::as_const(cb).begin()[0] == 42);
     REQUIRE(cb.begin()[2] == 44);
@@ -274,8 +274,8 @@ TEST_CASE("test_iterator_deref")
     // end
     REQUIRE(*(--cb.end()) == 44);
     REQUIRE(*(--std::as_const(cb).end()) == 44);
-    REQUIRE((--cb.end()).operator->() == 44);
-    REQUIRE((--std::as_const(cb).end()).operator->() == 44);
+    REQUIRE(*(--cb.end()).operator->() == 44);
+    REQUIRE(*(--std::as_const(cb).end()).operator->() == 44);
     REQUIRE(cb.end()[-1] == 44);
     REQUIRE(std::as_const(cb).end()[-1] == 44);
     REQUIRE(cb.end()[-3] == 42);
@@ -298,8 +298,8 @@ TEST_CASE("test_reverse_iterator_deref")
     // begin
     REQUIRE(*cb.rbegin() == 44);
     REQUIRE(*std::as_const(cb).rbegin() == 44);
-    REQUIRE(cb.rbegin().operator->() == 44);
-    REQUIRE(std::as_const(cb).rbegin().operator->() == 44);
+    REQUIRE(*cb.rbegin().operator->() == 44);
+    REQUIRE(*std::as_const(cb).rbegin().operator->() == 44);
     REQUIRE(cb.rbegin()[0] == 44);
     REQUIRE(std::as_const(cb).rbegin()[0] == 44);
     REQUIRE(cb.rbegin()[2] == 42);
@@ -307,8 +307,8 @@ TEST_CASE("test_reverse_iterator_deref")
     // end
     REQUIRE(*(--cb.rend()) == 42);
     REQUIRE(*(--std::as_const(cb).rend()) == 42);
-    REQUIRE((--cb.rend()).operator->() == 42);
-    REQUIRE((--std::as_const(cb).rend()).operator->() == 42);
+    REQUIRE(*(--cb.rend()).operator->() == 42);
+    REQUIRE(*(--std::as_const(cb).rend()).operator->() == 42);
     REQUIRE(cb.rend()[-1] == 42);
     REQUIRE(std::as_const(cb).rend()[-1] == 42);
     REQUIRE(cb.rend()[-3] == 44);
