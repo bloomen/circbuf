@@ -70,6 +70,11 @@ struct MoveOnly
         }
         return *this;
     }
+    double
+    get() const
+    {
+        return 42.5;
+    }
     int* data = nullptr;
 };
 
@@ -605,4 +610,12 @@ TEST_CASE("test_with_vector")
     cb.push_back(vec);
     cb.pop_front();
     REQUIRE(cb.empty());
+}
+
+TEST_CASE("test_operator_arrow")
+{
+    using Buf = circbuf::CircularBuffer<MoveOnly, 3>;
+    Buf cb;
+    cb.push_back(MoveOnly{});
+    REQUIRE(42.5 == cb.begin()->get());
 }

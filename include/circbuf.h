@@ -273,7 +273,7 @@ private:
     {
         for (auto value = rbegin(); value != rend(); ++value)
         {
-            value->~value_type();
+            (*value).~value_type();
         }
     }
 
