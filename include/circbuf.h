@@ -477,8 +477,8 @@ public:
     constexpr self_type&
     operator+=(const difference_type offset)
     {
-        const difference_type next =
-            (m_index + offset) % BufferType::max_size();
+        const difference_type next = (m_index + offset) %
+            static_cast<difference_type>(BufferType::max_size());
         m_index = next;
         return *this;
     }
@@ -628,7 +628,10 @@ operator-(
     const CircularBufferIterator<BufferType, Reverse>& it) noexcept
 {
     auto temp = it;
-    temp.m_index = (offset - it.m_index) % BufferType::max_size();
+    temp.m_index = (offset - it.m_index) %
+        static_cast<typename CircularBufferIterator<BufferType,
+                                                    Reverse>::difference_type>(
+                       BufferType::max_size());
     return temp;
 }
 
