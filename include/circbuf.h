@@ -528,6 +528,9 @@ private:
               bool Reverse1,
               typename BufferType2,
               bool Reverse2>
+        requires(std::is_same_v<std::remove_const_t<BufferType1>,
+                                std::remove_const_t<BufferType2>> &&
+                 ((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2)))
     friend constexpr typename BufferType1::difference_type
     operator+(const CircularBufferIterator<BufferType1, Reverse1>&,
               const CircularBufferIterator<BufferType2, Reverse2>&) noexcept;
@@ -536,6 +539,9 @@ private:
               bool Reverse1,
               typename BufferType2,
               bool Reverse2>
+        requires(std::is_same_v<std::remove_const_t<BufferType1>,
+                                std::remove_const_t<BufferType2>> &&
+                 ((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2)))
     friend constexpr typename BufferType1::difference_type
     operator-(const CircularBufferIterator<BufferType1, Reverse1>&,
               const CircularBufferIterator<BufferType2, Reverse2>&) noexcept;
@@ -544,6 +550,9 @@ private:
               bool Reverse1,
               typename BufferType2,
               bool Reverse2>
+        requires(std::is_same_v<std::remove_const_t<BufferType1>,
+                                std::remove_const_t<BufferType2>> &&
+                 ((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2)))
     friend constexpr bool
     operator==(const CircularBufferIterator<BufferType1, Reverse1>&,
                const CircularBufferIterator<BufferType2, Reverse2>&) noexcept;
@@ -552,6 +561,9 @@ private:
               bool Reverse1,
               typename BufferType2,
               bool Reverse2>
+        requires(std::is_same_v<std::remove_const_t<BufferType1>,
+                                std::remove_const_t<BufferType2>> &&
+                 ((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2)))
     friend constexpr auto
     operator<=>(const CircularBufferIterator<BufferType1, Reverse1>&,
                 const CircularBufferIterator<BufferType2, Reverse2>&) noexcept;
@@ -559,7 +571,7 @@ private:
     template <typename BufferType1, bool Reverse1>
     friend constexpr auto
     operator-(const typename CircularBufferIterator<BufferType1,
-                                                    Reverse1>::difference_type&,
+                                                    Reverse1>::difference_type,
               const CircularBufferIterator<BufferType1, Reverse1>&) noexcept;
 
     BufferType* m_buffer{};
@@ -570,6 +582,9 @@ template <typename BufferType1,
           bool Reverse1,
           typename BufferType2,
           bool Reverse2>
+    requires(std::is_same_v<std::remove_const_t<BufferType1>,
+                            std::remove_const_t<BufferType2>> &&
+             ((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2)))
 constexpr typename BufferType1::difference_type
 operator+(const CircularBufferIterator<BufferType1, Reverse1>& lhs,
           const CircularBufferIterator<BufferType2, Reverse2>& rhs) noexcept
@@ -581,6 +596,9 @@ template <typename BufferType1,
           bool Reverse1,
           typename BufferType2,
           bool Reverse2>
+    requires(std::is_same_v<std::remove_const_t<BufferType1>,
+                            std::remove_const_t<BufferType2>> &&
+             ((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2)))
 constexpr typename BufferType1::difference_type
 operator-(const CircularBufferIterator<BufferType1, Reverse1>& lhs,
           const CircularBufferIterator<BufferType2, Reverse2>& rhs) noexcept
@@ -592,6 +610,9 @@ template <typename BufferType1,
           bool Reverse1,
           typename BufferType2,
           bool Reverse2>
+    requires(std::is_same_v<std::remove_const_t<BufferType1>,
+                            std::remove_const_t<BufferType2>> &&
+             ((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2)))
 constexpr bool
 operator==(const CircularBufferIterator<BufferType1, Reverse1>& lhs,
            const CircularBufferIterator<BufferType2, Reverse2>& rhs) noexcept
@@ -603,6 +624,9 @@ template <typename BufferType1,
           bool Reverse1,
           typename BufferType2,
           bool Reverse2>
+    requires(std::is_same_v<std::remove_const_t<BufferType1>,
+                            std::remove_const_t<BufferType2>> &&
+             ((Reverse1 && Reverse2) || (!Reverse1 && !Reverse2)))
 constexpr auto
 operator<=>(const CircularBufferIterator<BufferType1, Reverse1>& lhs,
             const CircularBufferIterator<BufferType2, Reverse2>& rhs) noexcept
@@ -613,7 +637,7 @@ operator<=>(const CircularBufferIterator<BufferType1, Reverse1>& lhs,
 template <typename BufferType, bool Reverse>
 constexpr auto
 operator+(
-    const typename CircularBufferIterator<BufferType, Reverse>::difference_type&
+    const typename CircularBufferIterator<BufferType, Reverse>::difference_type
         offset,
     const CircularBufferIterator<BufferType, Reverse>& it) noexcept
 {
@@ -623,7 +647,7 @@ operator+(
 template <typename BufferType, bool Reverse>
 constexpr auto
 operator-(
-    const typename CircularBufferIterator<BufferType, Reverse>::difference_type&
+    const typename CircularBufferIterator<BufferType, Reverse>::difference_type
         offset,
     const CircularBufferIterator<BufferType, Reverse>& it) noexcept
 {
