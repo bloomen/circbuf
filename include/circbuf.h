@@ -159,7 +159,7 @@ public:
 
     template <typename... Type>
     constexpr void
-    push_back(Type&&... value) noexcept(
+    emplace_back(Type&&... value) noexcept(
         std::is_nothrow_constructible_v<value_type>)
     {
         increment();
