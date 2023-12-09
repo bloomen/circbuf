@@ -72,7 +72,7 @@ public:
         return *this;
     }
 
-    constexpr static size_type
+    consteval static size_type
     max_size() noexcept
     {
         return MaxSize;
