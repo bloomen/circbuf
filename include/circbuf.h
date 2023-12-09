@@ -385,12 +385,12 @@ class CircularBufferIterator
 public:
     using self_type = CircularBufferIterator;
     using value_type = typename BufferType::value_type;
-    using size_type = std::size_t;
-    using difference_type = std::ptrdiff_t;
-    using reference = value_type&;
-    using const_reference = const value_type&;
-    using pointer = value_type*;
-    using const_pointer = const value_type*;
+    using size_type = typename BufferType::size_type;
+    using difference_type = typename BufferType::difference_type;
+    using reference = typename BufferType::reference;
+    using const_reference = typename BufferType::const_reference;
+    using pointer = typename BufferType::pointer;
+    using const_pointer = typename BufferType::const_pointer;
     using iterator_category = std::random_access_iterator_tag;
     using contained_ref = std::
         conditional_t<std::is_const_v<BufferType>, const_reference, reference>;
