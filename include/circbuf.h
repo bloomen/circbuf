@@ -144,7 +144,7 @@ public:
         std::is_nothrow_copy_constructible_v<value_type>)
     {
         increment();
-        m_data[m_tail] = Memory{std::in_place_type_t<value_type>{}, value};
+        m_data[m_tail].template emplace<value_type>(value);
     }
 
     constexpr void
@@ -152,8 +152,7 @@ public:
         std::is_nothrow_move_constructible_v<value_type>)
     {
         increment();
-        m_data[m_tail] =
-            Memory{std::in_place_type_t<value_type>{}, std::move(value)};
+        m_data[m_tail].template emplace<value_type>(std::move(value));
     }
 
     template <typename... Type>
@@ -162,8 +161,8 @@ public:
         std::is_nothrow_constructible_v<value_type>)
     {
         increment();
-        m_data[m_tail] = Memory{std::in_place_type_t<value_type>{},
-                                std::forward<Type>(value)...};
+        m_data[m_tail].template emplace<value_type>(
+            std::forward<Type>(value)...);
     }
 
     constexpr value_type
