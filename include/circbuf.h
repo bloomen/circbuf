@@ -1,5 +1,6 @@
 #include <array>
 #include <cstddef>
+#include <memory>
 #include <type_traits>
 
 namespace circbuf
@@ -146,7 +147,7 @@ public:
         std::is_nothrow_copy_constructible_v<value_type>)
     {
         increment();
-        new (m_data[m_tail]) value_type{value};
+        std::construct_at(&at(m_tail), value);
     }
 
     constexpr void
@@ -154,7 +155,7 @@ public:
         std::is_nothrow_move_constructible_v<value_type>)
     {
         increment();
-        new (m_data[m_tail]) value_type{std::move(value)};
+        std::construct_at(&at(m_tail), std::move(value));
     }
 
     template <typename... Type>
@@ -163,7 +164,7 @@ public:
         std::is_nothrow_constructible_v<value_type>)
     {
         increment();
-        new (m_data[m_tail]) value_type{std::forward<Type>(value)...};
+        std::construct_at(&at(m_tail), std::forward<Type>(value)...);
     }
 
     constexpr value_type
@@ -273,7 +274,7 @@ private:
     {
         for (auto value = rbegin(); value != rend(); ++value)
         {
-            (*value).~value_type();
+            std::destroy_at(&*value);
         }
     }
 
