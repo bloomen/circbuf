@@ -620,16 +620,598 @@ TEST_CASE("test_operator_arrow")
     REQUIRE(42.5 == cb.begin()->get());
 }
 
-consteval std::size_t
-consteval_test()
+namespace
+{
+
+consteval auto
+consteval_copy_constructor()
 {
     circbuf::CircularBuffer<int, 3> buf;
     buf.push_back(42);
     buf.push_back(43);
-    buf.push_back(44);
-    buf.push_back(45);
-    buf.pop_front();
+    circbuf::CircularBuffer<int, 3> buf2{buf};
+    return buf2.size();
+}
+
+static_assert(2 == consteval_copy_constructor());
+
+consteval auto
+consteval_copy_assignmemt()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    buf.push_back(43);
+    circbuf::CircularBuffer<int, 3> buf2;
+    buf2 = buf;
+    return buf2.size();
+}
+
+static_assert(2 == consteval_copy_assignmemt());
+
+consteval auto
+consteval_move_constructor()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    buf.push_back(43);
+    circbuf::CircularBuffer<int, 3> buf2{std::move(buf)};
+    return buf2.size();
+}
+
+static_assert(2 == consteval_move_constructor());
+
+consteval auto
+consteval_move_assignmemt()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    buf.push_back(43);
+    circbuf::CircularBuffer<int, 3> buf2;
+    buf2 = std::move(buf);
+    return buf2.size();
+}
+
+static_assert(2 == consteval_move_assignmemt());
+
+consteval auto
+consteval_max_size()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    return buf.max_size();
+}
+
+static_assert(3 == consteval_max_size());
+
+consteval auto
+consteval_size()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    buf.push_back(43);
     return buf.size();
 }
 
-static_assert(2 == consteval_test());
+static_assert(2 == consteval_size());
+
+consteval auto
+consteval_empty()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    return buf.empty();
+}
+
+static_assert(consteval_empty());
+
+consteval auto
+consteval_not_empty()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    return buf.empty();
+}
+
+static_assert(!consteval_not_empty());
+
+consteval auto
+consteval_full()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    buf.push_back(42);
+    buf.push_back(42);
+    return buf.full();
+}
+
+static_assert(consteval_full());
+
+consteval auto
+consteval_not_full()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    buf.push_back(42);
+    return buf.full();
+}
+
+static_assert(!consteval_not_full());
+
+consteval auto
+consteval_clear()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    buf.push_back(42);
+    buf.clear();
+    return buf.empty();
+}
+
+static_assert(consteval_clear());
+
+consteval auto
+consteval_operator_subscript()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    buf.push_back(43);
+    return buf[1];
+}
+
+static_assert(43 == consteval_operator_subscript());
+
+consteval auto
+consteval_operator_subscript_const()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    buf.push_back(43);
+    return std::as_const(buf)[1];
+}
+
+static_assert(43 == consteval_operator_subscript_const());
+
+consteval auto
+consteval_front()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    buf.push_back(43);
+    return buf.front();
+}
+
+static_assert(42 == consteval_front());
+
+consteval auto
+consteval_front_const()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    buf.push_back(43);
+    return std::as_const(buf).front();
+}
+
+static_assert(42 == consteval_front_const());
+
+consteval auto
+consteval_back()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    buf.push_back(43);
+    return buf.back();
+}
+
+static_assert(43 == consteval_back());
+
+consteval auto
+consteval_back_const()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    buf.push_back(43);
+    return std::as_const(buf).back();
+}
+
+static_assert(43 == consteval_back_const());
+
+consteval auto
+consteval_push_and_pop()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    int x = 42;
+    buf.push_back(x);
+    buf.push_back(43);
+    buf.emplace_back(44);
+    buf.push_back(45);
+    buf.pop_front();
+    return buf[0];
+}
+
+static_assert(44 == consteval_push_and_pop());
+
+consteval auto
+consteval_begin()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    return *buf.begin();
+}
+
+static_assert(43 == consteval_begin());
+
+consteval auto
+consteval_begin_const()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    return *std::as_const(buf).begin();
+}
+
+static_assert(43 == consteval_begin_const());
+
+consteval auto
+consteval_cbegin()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    return *buf.cbegin();
+}
+
+static_assert(43 == consteval_cbegin());
+
+consteval auto
+consteval_end()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    return *(buf.end() - 1);
+}
+
+static_assert(43 == consteval_end());
+
+consteval auto
+consteval_end_const()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    return *(std::as_const(buf).end() - 1);
+}
+
+static_assert(43 == consteval_end_const());
+
+consteval auto
+consteval_cend()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    return *(buf.cend() - 1);
+}
+
+static_assert(43 == consteval_cend());
+
+consteval auto
+consteval_rbegin()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    return *buf.rbegin();
+}
+
+static_assert(43 == consteval_rbegin());
+
+consteval auto
+consteval_rbegin_const()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    return *std::as_const(buf).rbegin();
+}
+
+static_assert(43 == consteval_rbegin_const());
+
+consteval auto
+consteval_crbegin()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    return *buf.crbegin();
+}
+
+static_assert(43 == consteval_crbegin());
+
+consteval auto
+consteval_rend()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    return *(buf.rend() - 1);
+}
+
+static_assert(43 == consteval_rend());
+
+consteval auto
+consteval_rend_const()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    return *(std::as_const(buf).rend() - 1);
+}
+
+static_assert(43 == consteval_rend_const());
+
+consteval auto
+consteval_crend()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    return *(buf.crend() - 1);
+}
+
+static_assert(43 == consteval_crend());
+
+consteval auto
+consteval_iterator_operator_asterisk()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    return *buf.begin();
+}
+
+static_assert(43 == consteval_iterator_operator_asterisk());
+
+consteval auto
+consteval_iterator_operator_asterisk_const()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.begin();
+    return *std::as_const(it);
+}
+
+static_assert(43 == consteval_iterator_operator_asterisk_const());
+
+consteval auto
+consteval_iterator_operator_arrow()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    return *buf.begin().operator->();
+}
+
+static_assert(43 == consteval_iterator_operator_arrow());
+
+consteval auto
+consteval_iterator_operator_arrow_const()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.begin();
+    return *std::as_const(it).operator->();
+}
+
+static_assert(43 == consteval_iterator_operator_arrow_const());
+
+consteval auto
+consteval_iterator_operator_prefix_increment()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.begin();
+    return *(++it);
+}
+
+static_assert(44 == consteval_iterator_operator_prefix_increment());
+
+consteval auto
+consteval_iterator_operator_postfix_increment()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.begin();
+    return *(it++);
+}
+
+static_assert(43 == consteval_iterator_operator_postfix_increment());
+
+consteval auto
+consteval_iterator_operator_plus_offset()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.begin();
+    return *(it + 1);
+}
+
+static_assert(44 == consteval_iterator_operator_plus_offset());
+
+consteval auto
+consteval_iterator_operator_pluseq_offset()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.begin();
+    it += 1;
+    return *it;
+}
+
+static_assert(44 == consteval_iterator_operator_pluseq_offset());
+
+consteval auto
+consteval_iterator_operator_prefix_decrement()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.end() - 1;
+    return *(--it);
+}
+
+static_assert(44 == consteval_iterator_operator_prefix_decrement());
+
+consteval auto
+consteval_iterator_operator_postfix_decrement()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.end() - 1;
+    return *(it--);
+}
+
+static_assert(45 == consteval_iterator_operator_postfix_decrement());
+
+consteval auto
+consteval_iterator_operator_minus_offset()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.end() - 2;
+    return *it;
+}
+
+static_assert(44 == consteval_iterator_operator_minus_offset());
+
+consteval auto
+consteval_iterator_operator_minuseq_offset()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.end();
+    it -= 2;
+    return *it;
+}
+
+static_assert(44 == consteval_iterator_operator_minuseq_offset());
+
+consteval auto
+consteval_iterator_operator_subscript()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.begin();
+    return it[1];
+}
+
+static_assert(44 == consteval_iterator_operator_subscript());
+
+consteval auto
+consteval_iterator_operator_subscript_const()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.begin();
+    return std::as_const(it)[1];
+}
+
+static_assert(44 == consteval_iterator_operator_subscript_const());
+
+consteval auto
+consteval_iterator_free_operator_plus_for_iterators()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.begin();
+    auto it2 = buf.begin() + 1;
+    return it + it2;
+}
+
+static_assert(1 == consteval_iterator_free_operator_plus_for_iterators());
+
+consteval auto
+consteval_iterator_free_operator_minus_for_iterators()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.begin();
+    auto it2 = buf.end();
+    return it2 - it;
+}
+
+static_assert(3 == consteval_iterator_free_operator_minus_for_iterators());
+
+consteval auto
+consteval_iterator_free_operator_equals_for_iterators()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.begin();
+    auto it2 = buf.begin();
+    return it2 == it;
+}
+
+static_assert(consteval_iterator_free_operator_equals_for_iterators());
+
+consteval auto
+consteval_iterator_free_operator_lesser_for_iterators()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.begin();
+    auto it2 = buf.end();
+    return it < it2;
+}
+
+static_assert(consteval_iterator_free_operator_lesser_for_iterators());
+
+consteval auto
+consteval_iterator_free_operator_plus_for_offset_and_iterator()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.begin();
+    return *(2 + it);
+}
+
+static_assert(45 ==
+              consteval_iterator_free_operator_plus_for_offset_and_iterator());
+
+consteval auto
+consteval_iterator_free_operator_minus_for_offset_and_iterator()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    auto it = buf.begin();
+    return *(2 - it);
+}
+
+static_assert(45 ==
+              consteval_iterator_free_operator_minus_for_offset_and_iterator());
+
+} // namespace

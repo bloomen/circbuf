@@ -97,7 +97,8 @@ public:
     constexpr void
     clear() noexcept(std::is_nothrow_destructible_v<value_type>)
     {
-        std::destroy(m_data.begin(), m_data.end());
+        decltype(m_data) data;
+        m_data.swap(data);
         m_size = 0;
         m_head = 0;
         m_tail = 0;
