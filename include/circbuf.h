@@ -1,7 +1,7 @@
 #include <array>
 #include <cstddef>
-#include <memory>
 #include <type_traits>
+#include <variant>
 
 namespace circbuf
 {
@@ -30,10 +30,7 @@ public:
     constexpr CircularBuffer() = default;
 
     constexpr ~CircularBuffer() noexcept(
-        std::is_nothrow_destructible_v<value_type>)
-    {
-        destruct();
-    }
+        std::is_nothrow_destructible_v<value_type>) = default;
 
     constexpr CircularBuffer(const CircularBuffer& other) noexcept(
         std::is_nothrow_copy_constructible_v<value_type>)
@@ -100,7 +97,7 @@ public:
     constexpr void
     clear() noexcept(std::is_nothrow_destructible_v<value_type>)
     {
-        destruct();
+        std::destroy(m_data.begin(), m_data.end());
         m_size = 0;
         m_head = 0;
         m_tail = 0;
@@ -147,7 +144,7 @@ public:
         std::is_nothrow_copy_constructible_v<value_type>)
     {
         increment();
-        std::construct_at(&at(m_tail), value);
+        m_data[m_tail] = Memory{std::in_place_type_t<value_type>{}, value};
     }
 
     constexpr void
@@ -155,7 +152,8 @@ public:
         std::is_nothrow_move_constructible_v<value_type>)
     {
         increment();
-        std::construct_at(&at(m_tail), std::move(value));
+        m_data[m_tail] =
+            Memory{std::in_place_type_t<value_type>{}, std::move(value)};
     }
 
     template <typename... Type>
@@ -164,7 +162,8 @@ public:
         std::is_nothrow_constructible_v<value_type>)
     {
         increment();
-        std::construct_at(&at(m_tail), std::forward<Type>(value)...);
+        m_data[m_tail] = Memory{std::in_place_type_t<value_type>{},
+                                std::forward<Type>(value)...};
     }
 
     constexpr value_type
@@ -177,7 +176,6 @@ public:
         m_head = (m_head + 1) % MaxSize;
         --m_size;
         auto value = std::move(at(index));
-        at(index).~value_type();
         return value;
     }
 
@@ -257,25 +255,16 @@ private:
     template <typename BufferType, bool Reverse>
     friend class CircularBufferIterator;
 
-    value_type&
+    constexpr value_type&
     at(const size_type index) noexcept
     {
-        return *reinterpret_cast<value_type*>(&m_data[index]);
+        return std::get<value_type>(m_data[index]);
     }
 
-    const value_type&
+    constexpr const value_type&
     at(const size_type index) const noexcept
     {
-        return *reinterpret_cast<const value_type*>(&m_data[index]);
-    }
-
-    constexpr void
-    destruct() noexcept(std::is_nothrow_destructible_v<value_type>)
-    {
-        for (auto value = rbegin(); value != rend(); ++value)
-        {
-            std::destroy_at(&*value);
-        }
+        return std::get<value_type>(m_data[index]);
     }
 
     constexpr void
@@ -320,7 +309,7 @@ private:
         }
     }
 
-    using Memory = unsigned char[sizeof(value_type)];
+    using Memory = std::variant<std::monostate, value_type>;
     std::array<Memory, MaxSize> m_data;
     size_type m_size{};
     size_type m_head{};

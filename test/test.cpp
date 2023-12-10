@@ -619,3 +619,17 @@ TEST_CASE("test_operator_arrow")
     cb.push_back(MoveOnly{});
     REQUIRE(42.5 == cb.begin()->get());
 }
+
+consteval std::size_t
+consteval_test()
+{
+    circbuf::CircularBuffer<int, 3> buf;
+    buf.push_back(42);
+    buf.push_back(43);
+    buf.push_back(44);
+    buf.push_back(45);
+    buf.pop_front();
+    return buf.size();
+}
+
+static_assert(2 == consteval_test());
