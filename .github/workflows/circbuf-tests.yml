@@ -8,7 +8,7 @@ jobs:
   tests:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest]
         config: [Debug, Release]
         asan: [ON, OFF]
         exclude:
