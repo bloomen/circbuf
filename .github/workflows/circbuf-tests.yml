@@ -21,13 +21,12 @@ jobs:
       - name: use msvc
         uses: ilammy/msvc-dev-cmd@v1
       - name: setup dependencies
-        if: startsWith(matrix.os, 'ubuntu')
+        runs-on: ubuntu-latest
         run: |
           sudo apt update
           sudo apt install -y gcc-13 g++-13
-        env:
-          CC: gcc-13
-          CXX: g++-13
+          echo "CC=gcc-13" >> $GITHUB_ENV
+          echo "CXX=g++-13" >> $GITHUB_ENV
       - name: run tests
         run: |
           cmake -DCMAKE_BUILD_TYPE=${{ matrix.config }} -Dcircbuf_build_tests=ON -Dcircbuf_enable_asan=${{ matrix.asan }} .
