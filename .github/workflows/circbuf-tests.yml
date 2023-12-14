@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v2
       - name: use msvc
         uses: ilammy/msvc-dev-cmd@v1
-      - name: setup dependencies
+      - name: setup ubuntu deps
         if: startsWith(matrix.os, 'ubuntu')
         run: |
           sudo apt update
