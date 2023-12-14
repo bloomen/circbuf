@@ -21,7 +21,7 @@ jobs:
       - name: use msvc
         uses: ilammy/msvc-dev-cmd@v1
       - name: setup dependencies
-        runs-on: ubuntu-latest
+        if: startsWith(matrix.os, 'ubuntu')
         run: |
           sudo apt update
           sudo apt install -y gcc-13 g++-13
