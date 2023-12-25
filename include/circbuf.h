@@ -174,8 +174,7 @@ public:
         const auto index = m_head;
         m_head = (m_head + 1) % MaxSize;
         --m_size;
-        auto value = std::move(at(index));
-        return value;
+        return std::move(at(index));
     }
 
     constexpr iterator
