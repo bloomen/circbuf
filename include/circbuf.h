@@ -314,10 +314,11 @@ private:
     size_type m_tail{};
 };
 
-template <typename T, std::size_t MaxSize1, std::size_t MaxSize2>
+template <typename T1, std::size_t MaxSize1, typename T2, std::size_t MaxSize2>
+    requires(std::equality_comparable_with<T1, T2>)
 constexpr bool
-operator==(const CircularBuffer<T, MaxSize1>& lhs,
-           const CircularBuffer<T, MaxSize2>& rhs) noexcept
+operator==(const CircularBuffer<T1, MaxSize1>& lhs,
+           const CircularBuffer<T2, MaxSize2>& rhs) noexcept
 {
     if (lhs.size() != rhs.size())
     {
@@ -326,43 +327,48 @@ operator==(const CircularBuffer<T, MaxSize1>& lhs,
     return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
-template <typename T, std::size_t MaxSize1, std::size_t MaxSize2>
+template <typename T1, std::size_t MaxSize1, typename T2, std::size_t MaxSize2>
+    requires(std::equality_comparable_with<T1, T2>)
 constexpr bool
-operator!=(const CircularBuffer<T, MaxSize1>& lhs,
-           const CircularBuffer<T, MaxSize2>& rhs) noexcept
+operator!=(const CircularBuffer<T1, MaxSize1>& lhs,
+           const CircularBuffer<T2, MaxSize2>& rhs) noexcept
 {
     return !(lhs == rhs);
 }
 
-template <typename T, std::size_t MaxSize1, std::size_t MaxSize2>
+template <typename T1, std::size_t MaxSize1, typename T2, std::size_t MaxSize2>
+    requires(std::totally_ordered_with<T1, T2>)
 constexpr bool
-operator<(const CircularBuffer<T, MaxSize1>& lhs,
-          const CircularBuffer<T, MaxSize2>& rhs) noexcept
+operator<(const CircularBuffer<T1, MaxSize1>& lhs,
+          const CircularBuffer<T2, MaxSize2>& rhs) noexcept
 {
     return std::lexicographical_compare(
         lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
-template <typename T, std::size_t MaxSize1, std::size_t MaxSize2>
+template <typename T1, std::size_t MaxSize1, typename T2, std::size_t MaxSize2>
+    requires(std::totally_ordered_with<T1, T2>)
 constexpr bool
-operator>(const CircularBuffer<T, MaxSize1>& lhs,
-          const CircularBuffer<T, MaxSize2>& rhs) noexcept
+operator>(const CircularBuffer<T1, MaxSize1>& lhs,
+          const CircularBuffer<T2, MaxSize2>& rhs) noexcept
 {
     return rhs < lhs;
 }
 
-template <typename T, std::size_t MaxSize1, std::size_t MaxSize2>
+template <typename T1, std::size_t MaxSize1, typename T2, std::size_t MaxSize2>
+    requires(std::totally_ordered_with<T1, T2>)
 constexpr bool
-operator<=(const CircularBuffer<T, MaxSize1>& lhs,
-           const CircularBuffer<T, MaxSize2>& rhs) noexcept
+operator<=(const CircularBuffer<T1, MaxSize1>& lhs,
+           const CircularBuffer<T2, MaxSize2>& rhs) noexcept
 {
     return !(lhs > rhs);
 }
 
-template <typename T, std::size_t MaxSize1, std::size_t MaxSize2>
+template <typename T1, std::size_t MaxSize1, typename T2, std::size_t MaxSize2>
+    requires(std::totally_ordered_with<T1, T2>)
 constexpr bool
-operator>=(const CircularBuffer<T, MaxSize1>& lhs,
-           const CircularBuffer<T, MaxSize2>& rhs) noexcept
+operator>=(const CircularBuffer<T1, MaxSize1>& lhs,
+           const CircularBuffer<T2, MaxSize2>& rhs) noexcept
 {
     return !(lhs < rhs);
 }
